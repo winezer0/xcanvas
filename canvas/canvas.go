@@ -1,18 +1,64 @@
 package canvas
 
 import (
+	"context"
+	"fmt"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/winezer0/codecanvas/internal/analyzer"
+	"github.com/winezer0/codecanvas/internal/engine"
 	"github.com/winezer0/codecanvas/internal/model"
 )
+
+// Analyze performs a full analysis and returns a CanvasReport.
+func Analyze(path string, rulesDir string) (*model.CanvasReport, error) {
+	ctx := context.Background()
+
+	// Analyze code profile
+	az := analyzer.NewCodeAnalyzer()
+	profile, index, err := az.AnalyzeCodeProfile(ctx, path)
+	if err != nil {
+		return nil, fmt.Errorf("error analyzing code profile: %v", err)
+	}
+
+	// Create rule engine
+	ruleEngine, err := engine.NewCanvasEngine(rulesDir)
+	if err != nil {
+		return nil, fmt.Errorf("error loading rules: %v", err)
+	}
+
+	// 获取检测到的语言
+	languages := make([]string, 0, len(profile.Languages))
+	for _, lang := range profile.Languages {
+		languages = append(languages, lang.Name)
+	}
+
+	// 扩展语言（例如 TSX -> JavaScript）以确保规则匹配
+	languages = expandLanguages(languages)
+
+	// 检测框架和组件
+	detectionResult, err := ruleEngine.DetectFrameworks(ctx, index, languages)
+	if err != nil {
+		return nil, fmt.Errorf("error detecting frameworks and components: %v", err)
+	}
+
+	// 生成分析报告
+	report := &model.CanvasReport{
+		CodeProfile: *profile,
+		Detection:   *detectionResult,
+		Timestamp:   time.Now(),
+	}
+	return report, nil
+}
 
 // AnalyzeDirectory 对指定目录进行代码画板分析，返回分类后的结果。
 // rulesDir 可选，指定自定义规则目录。如果为空，则仅使用内置规则。
 func AnalyzeDirectory(path string, rulesDir string) (*model.AnalysisResult, error) {
 	// 调用 canvas 包的核心分析函数
 	// 注意：canvas.Analyze 返回的是 CanvasReport，包含了更详细的信息
-	report, err := Analyze(path, rulesDir, "0.0.0")
+	report, err := Analyze(path, rulesDir)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +81,22 @@ func AnalyzeDirectory(path string, rulesDir string) (*model.AnalysisResult, erro
 	}
 
 	return result, nil
+}
+func expandLanguages(langs []string) []string {
+	seen := make(map[string]bool)
+	for _, l := range langs {
+		seen[l] = true
+	}
+
+	// 检查 JS 系列
+	if seen["TypeScript"] || seen["TSX"] || seen["JSX"] {
+		if !seen["JavaScript"] {
+			langs = append(langs, "JavaScript")
+			seen["JavaScript"] = true
+		}
+	}
+
+	return langs
 }
 
 // getTopLanguages 根据代码行数和文件数对语言进行排序并返回前 N 个

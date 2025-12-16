@@ -135,7 +135,7 @@ type CanvasReport struct {
 	CodeProfile CodeProfile     `json:"code_profile"`
 	Detection   DetectionResult `json:"detection"`
 	Timestamp   time.Time       `json:"timestamp"`
-	Version     string          `json:"codecanvas_version"`
+	Version     string          `json:"version"`
 }
 
 // FrontendLanguageSet 包含已知的前端相关语言。  用于填充 CodeProfile.FrontendLanguages 字段。

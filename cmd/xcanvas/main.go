@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/winezer0/codecanvas/canvas"
-	"github.com/winezer0/codecanvas/internal/model"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/winezer0/codecanvas/canvas"
+	"github.com/winezer0/codecanvas/internal/model"
 
 	"github.com/jessevdk/go-flags"
 )
@@ -61,7 +62,7 @@ Usage:
 // handleAnalyzeCommand handles the "analyze" command.
 func handleAnalyzeCommand(cmd *Options) {
 	// Use the facade to perform analysis
-	report, err := canvas.Analyze(cmd.Path, cmd.RulesDir, Version)
+	report, err := canvas.Analyze(cmd.Path, cmd.RulesDir)
 	if err != nil {
 		fmt.Printf("Error analyzing code profile: %v\n", err)
 		os.Exit(1)
@@ -125,7 +126,6 @@ func outputText(report *model.CanvasReport) {
 	}
 
 	fmt.Printf("Generated: %s\n", report.Timestamp.Format(time.RFC1123))
-	fmt.Printf("Version: %s\n", report.Version)
 }
 
 func printDetectedItems(title string, items []model.DetectedItem) {
