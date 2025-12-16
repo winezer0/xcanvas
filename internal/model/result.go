@@ -15,7 +15,7 @@ type AnalysisResult struct {
 	// 后端语言列表
 	BackendLanguages []string `json:"backend_languages"`
 	// 框架信息列表
-	Frameworks []DetectedItem `json:"frameworks"`
+	Frameworks []string `json:"frameworks"`
 	// 组件信息列表
-	Components []DetectedItem `json:"components"`
+	Components []string `json:"components"`
 }

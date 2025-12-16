@@ -76,27 +76,11 @@ func AnalyzeDirectory(path string, rulesDir string) (*model.AnalysisResult, erro
 		FrontendLanguages:     report.CodeProfile.FrontendLanguages,
 		MainBackendLanguages:  getTopLanguages(report.CodeProfile.BackendLanguages, langStats, nil, 3),
 		BackendLanguages:      report.CodeProfile.BackendLanguages,
-		Frameworks:            report.Detection.Frameworks,
-		Components:            report.Detection.Components,
+		Frameworks:            getUniqueItemNames(report.Detection.Frameworks),
+		Components:            getUniqueItemNames(report.Detection.Components),
 	}
 
 	return result, nil
-}
-func expandLanguages(langs []string) []string {
-	seen := make(map[string]bool)
-	for _, l := range langs {
-		seen[l] = true
-	}
-
-	// 检查 JS 系列
-	if seen["TypeScript"] || seen["TSX"] || seen["JSX"] {
-		if !seen["JavaScript"] {
-			langs = append(langs, "JavaScript")
-			seen["JavaScript"] = true
-		}
-	}
-
-	return langs
 }
 
 // getTopLanguages 根据代码行数和文件数对语言进行排序并返回前 N 个
@@ -136,4 +120,23 @@ func getTopLanguages(candidates []string, stats map[string]model.LanguageInfo, e
 		count++
 	}
 	return result
+}
+
+// getUniqueItemNames 提取去重后的 items (组件名或者框架名)名称 列表
+func getUniqueItemNames(components []model.DetectedItem) []string {
+	seen := make(map[string]bool)
+	var languages []string
+
+	for _, item := range components {
+		name := item.Name
+		if name == "" {
+			continue // 跳过空语言（可选）
+		}
+		if !seen[name] {
+			seen[name] = true
+			languages = append(languages, name)
+		}
+	}
+
+	return languages
 }

@@ -65,7 +65,7 @@ func main() {
 	// 2. 验证框架 (Gin)
 	foundGin := false
 	for _, fw := range result.Frameworks {
-		if fw.Name == "Gin" && fw.Language == "Go" {
+		if fw == "Gin" {
 			foundGin = true
 			break
 		}
