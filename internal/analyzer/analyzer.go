@@ -2,14 +2,14 @@
 package analyzer
 
 import (
-	"context"
-	"github.com/winezer0/codecanvas/internal/classifier"
-	"github.com/winezer0/codecanvas/internal/model"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/winezer0/codecanvas/internal/classifier"
+	"github.com/winezer0/codecanvas/internal/model"
 )
 
 // LanguageSummary 保存单一语言的统计结果
@@ -43,7 +43,7 @@ type AnalysisResult struct {
 }
 
 // AnalyzeCodeProfile 分析给定路径下的代码库并返回代码画像和文件索引。
-func (a *CodeAnalyzer) AnalyzeCodeProfile(ctx context.Context, path string) (*model.CodeProfile, *model.FileIndex, error) {
+func (a *CodeAnalyzer) AnalyzeCodeProfile(path string) (*model.CodeProfile, *model.FileIndex, error) {
 	// 获取绝对路径
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -54,7 +54,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(ctx context.Context, path string) (*mo
 	fileIndex := model.NewFileIndex(absPath)
 
 	// 准备并发处理
-	numWorkers := runtime.NumCPU() * 2
+	numWorkers := runtime.NumCPU()
 	tasks := make(chan AnalysisTask, numWorkers)
 	results := make(chan AnalysisResult, numWorkers)
 	var wg sync.WaitGroup
@@ -154,10 +154,12 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(ctx context.Context, path string) (*mo
 	lc := classifier.NewLanguageClassifier()
 	// 尝试加载自定义规则（如果存在）
 	_ = lc.LoadFromFile(filepath.Join(absPath, "lang-rules.json"))
-	frontend, backend, desktop := lc.DetectCategories(absPath, p.Languages)
+	frontend, backend, desktop, alls := lc.DetectCategories(absPath, p.LanguageInfos)
 	p.FrontendLanguages = frontend
 	p.BackendLanguages = backend
 	p.DesktopLanguages = desktop
+	p.Languages = alls
+	p.ExpandLanguages = expandLanguages(alls)
 
 	return p, fileIndex, nil
 }
@@ -171,7 +173,7 @@ func (a *CodeAnalyzer) convertToCodeProfile(path string, results []LanguageSumma
 		ErrorFiles:        errorFiles,
 		FrontendLanguages: []string{},
 		BackendLanguages:  []string{},
-		Languages:         []model.LanguageInfo{},
+		LanguageInfos:     []model.LanguageInfo{},
 	}
 
 	for _, stat := range results {
@@ -184,7 +186,7 @@ func (a *CodeAnalyzer) convertToCodeProfile(path string, results []LanguageSumma
 		}
 
 		// Add to profile
-		profile.Languages = append(profile.Languages, langInfo)
+		profile.LanguageInfos = append(profile.LanguageInfos, langInfo)
 		profile.TotalFiles += langInfo.Files
 		profile.TotalLines += langInfo.CodeLines + langInfo.CommentLines + langInfo.BlankLines
 	}

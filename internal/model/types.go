@@ -23,35 +23,26 @@ const (
 	CategoryDesktop  = "desktop"
 )
 
-// FileIndex 存储代码库的文件索引结构，用于加速查找。
-type FileIndex struct {
-	// RootDir 是被索引的根目录绝对路径
-	RootDir string
-	// Files 存储所有文件的相对路径列表
-	Files []string
-	// NameMap 映射文件名到 Files 切片中的索引列表 (例如: "package.json" -> [0, 5, 10])
-	NameMap map[string][]int
-	// ExtensionMap 映射文件扩展名到 Files 切片中的索引列表 (例如: ".go" -> [1, 2, 3])
-	ExtensionMap map[string][]int
-}
-
-// NewFileIndex 创建一个新的空索引
-func NewFileIndex(rootDir string) *FileIndex {
-	return &FileIndex{
-		RootDir:      rootDir,
-		Files:        make([]string, 0),
-		NameMap:      make(map[string][]int),
-		ExtensionMap: make(map[string][]int),
-	}
-}
-
-// AddFile 向索引中添加一个文件
-func (fi *FileIndex) AddFile(relPath string, fileName string, ext string) {
-	idx := len(fi.Files)
-	fi.Files = append(fi.Files, relPath)
-
-	fi.NameMap[fileName] = append(fi.NameMap[fileName], idx)
-	fi.ExtensionMap[ext] = append(fi.ExtensionMap[ext], idx)
+// AnalysisResult 包含了 CodeCanvas 分析的完整结果
+type AnalysisResult struct {
+	// 语言信息列表
+	LanguageInfos []LanguageInfo `json:"language_infos"`
+	// 语言列表
+	Languages []string `json:"languages"`
+	// 桌面语言列表
+	DesktopLanguages []string `json:"desktop_languages"`
+	// 前端语言列表
+	FrontendLanguages []string `json:"frontend_languages"`
+	// 后端语言列表
+	BackendLanguages []string `json:"backend_languages"`
+	// 主要后端语言列表 (Top 3)
+	MainBackendLanguages []string `json:"main_backend_languages"`
+	// 主要前端语言列表 (Top 3)
+	MainFrontendLanguages []string `json:"main_frontend_languages"`
+	// 框架信息列表
+	Frameworks []string `json:"frameworks"`
+	// 组件信息列表
+	Components []string `json:"components"`
 }
 
 type CodeProfile struct {
@@ -59,10 +50,12 @@ type CodeProfile struct {
 	TotalFiles        int            `json:"total_files"`
 	TotalLines        int            `json:"total_lines"`
 	ErrorFiles        int            `json:"error_files"`        // Number of files that failed to process
+	LanguageInfos     []LanguageInfo `json:"language_infos"`     // 所有检测到的语言的完整列表
 	FrontendLanguages []string       `json:"frontend_languages"` // 例如: ["TypeScript", "JavaScript"]
 	BackendLanguages  []string       `json:"backend_languages"`  // 例如: ["Java", "Go"]
 	DesktopLanguages  []string       `json:"desktop_languages"`  // 例如: ["C#", "C++"]
-	Languages         []LanguageInfo `json:"languages"`          // 所有检测到的语言的完整列表
+	Languages         []string       `json:"languages"`
+	ExpandLanguages   []string       `json:"expand_languages"`
 }
 
 // LanguageInfo  某一编程语言或标记语言的详细统计数据。
@@ -174,15 +167,4 @@ var BackendLanguageSet = map[string]bool{
 	"Groovy":      true,
 	"Shell":       true, // often used in scripts/backends
 	"PowerShell":  true,
-}
-
-// GetLanguageCategory 返回给定语言的类别（前端/后端/其他）
-func GetLanguageCategory(languageName string) string {
-	if FrontendLanguageSet[languageName] {
-		return "frontend"
-	}
-	if BackendLanguageSet[languageName] {
-		return "backend"
-	}
-	return "other"
 }

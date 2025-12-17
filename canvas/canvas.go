@@ -18,28 +18,18 @@ func Analyze(path string, rulesDir string) (*model.CanvasReport, error) {
 
 	// Analyze code profile
 	az := analyzer.NewCodeAnalyzer()
-	profile, index, err := az.AnalyzeCodeProfile(ctx, path)
+	profile, index, err := az.AnalyzeCodeProfile(path)
 	if err != nil {
 		return nil, fmt.Errorf("error analyzing code profile: %v", err)
 	}
 
 	// Create rule engine
-	ruleEngine, err := engine.NewCanvasEngine(rulesDir)
+	detectEngine, err := engine.NewCanvasEngine(rulesDir)
 	if err != nil {
 		return nil, fmt.Errorf("error loading rules: %v", err)
 	}
-
-	// 获取检测到的语言
-	languages := make([]string, 0, len(profile.Languages))
-	for _, lang := range profile.Languages {
-		languages = append(languages, lang.Name)
-	}
-
-	// 扩展语言（例如 TSX -> JavaScript）以确保规则匹配
-	languages = expandLanguages(languages)
-
 	// 检测框架和组件
-	detectionResult, err := ruleEngine.DetectFrameworks(ctx, index, languages)
+	detect, err := detectEngine.DetectFrameworks(ctx, index, profile.ExpandLanguages)
 	if err != nil {
 		return nil, fmt.Errorf("error detecting frameworks and components: %v", err)
 	}
@@ -47,40 +37,47 @@ func Analyze(path string, rulesDir string) (*model.CanvasReport, error) {
 	// 生成分析报告
 	report := &model.CanvasReport{
 		CodeProfile: *profile,
-		Detection:   *detectionResult,
+		Detection:   *detect,
 		Timestamp:   time.Now(),
 	}
 	return report, nil
 }
 
-// AnalyzeDirectory 对指定目录进行代码画板分析，返回分类后的结果。
-// rulesDir 可选，指定自定义规则目录。如果为空，则仅使用内置规则。
-func AnalyzeDirectory(path string, rulesDir string) (*model.AnalysisResult, error) {
-	// 调用 canvas 包的核心分析函数
-	// 注意：canvas.Analyze 返回的是 CanvasReport，包含了更详细的信息
-	report, err := Analyze(path, rulesDir)
-	if err != nil {
-		return nil, err
-	}
-
+// ToSimpleReport 转换为简单的报告模式
+func ToSimpleReport(report *model.CanvasReport) *model.AnalysisResult {
 	// 转换语言列表为 Map 以便快速查找统计信息
-	langStats := make(map[string]model.LanguageInfo)
-	for _, l := range report.CodeProfile.Languages {
-		langStats[l.Name] = l
-	}
-
+	langStats := languageInfosToMap(report.CodeProfile.LanguageInfos)
 	result := &model.AnalysisResult{
+		LanguageInfos:         report.CodeProfile.LanguageInfos,
 		Languages:             report.CodeProfile.Languages,
 		DesktopLanguages:      report.CodeProfile.DesktopLanguages,
-		MainFrontendLanguages: getTopLanguages(report.CodeProfile.FrontendLanguages, langStats, nil, 3),
 		FrontendLanguages:     report.CodeProfile.FrontendLanguages,
-		MainBackendLanguages:  getTopLanguages(report.CodeProfile.BackendLanguages, langStats, nil, 3),
 		BackendLanguages:      report.CodeProfile.BackendLanguages,
 		Frameworks:            getUniqueItemNames(report.Detection.Frameworks),
 		Components:            getUniqueItemNames(report.Detection.Components),
+		MainFrontendLanguages: getTopLanguages(report.CodeProfile.FrontendLanguages, langStats, nil, 3),
+		MainBackendLanguages:  getTopLanguages(report.CodeProfile.BackendLanguages, langStats, nil, 3),
+	}
+	return result
+}
+
+// getUniqueItemNames 提取去重后的 items (组件名或者框架名)名称 列表
+func getUniqueItemNames(components []model.DetectedItem) []string {
+	seen := make(map[string]bool)
+	var languages []string
+
+	for _, item := range components {
+		name := item.Name
+		if name == "" {
+			continue // 跳过空语言（可选）
+		}
+		if !seen[name] {
+			seen[name] = true
+			languages = append(languages, name)
+		}
 	}
 
-	return result, nil
+	return languages
 }
 
 // getTopLanguages 根据代码行数和文件数对语言进行排序并返回前 N 个
@@ -122,21 +119,10 @@ func getTopLanguages(candidates []string, stats map[string]model.LanguageInfo, e
 	return result
 }
 
-// getUniqueItemNames 提取去重后的 items (组件名或者框架名)名称 列表
-func getUniqueItemNames(components []model.DetectedItem) []string {
-	seen := make(map[string]bool)
-	var languages []string
-
-	for _, item := range components {
-		name := item.Name
-		if name == "" {
-			continue // 跳过空语言（可选）
-		}
-		if !seen[name] {
-			seen[name] = true
-			languages = append(languages, name)
-		}
+func languageInfosToMap(languageInfos []model.LanguageInfo) map[string]model.LanguageInfo {
+	langStats := make(map[string]model.LanguageInfo)
+	for _, l := range languageInfos {
+		langStats[l.Name] = l
 	}
-
-	return languages
+	return langStats
 }

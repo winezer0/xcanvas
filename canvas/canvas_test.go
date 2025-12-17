@@ -43,9 +43,9 @@ func main() {
 	}
 
 	// 运行分析
-	result, err := AnalyzeDirectory(tmpDir, "")
+	result, err := ToSimpleReport(tmpDir, "")
 	if err != nil {
-		t.Fatalf("AnalyzeDirectory 失败: %v", err)
+		t.Fatalf("ToSimpleReport 失败: %v", err)
 	}
 
 	// 验证结果

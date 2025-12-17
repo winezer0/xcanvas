@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -39,14 +38,14 @@ func TestAllLanguagesCoverage(t *testing.T) {
 
 	// Analyze the directory
 	az := NewCodeAnalyzer()
-	profile, _, err := az.AnalyzeCodeProfile(context.Background(), tmpDir)
+	profile, _, err := az.AnalyzeCodeProfile(tmpDir)
 	if err != nil {
 		t.Fatalf("AnalyzeCodeProfile failed: %v", err)
 	}
 
 	// Verify results
 	foundLanguages := make(map[string]bool)
-	for _, l := range profile.Languages {
+	for _, l := range profile.LanguageInfos {
 		foundLanguages[l.Name] = true
 		// Verify counts (expecting roughly 1 file, >0 code lines per language)
 		if l.Files != 1 {

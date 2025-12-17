@@ -1,7 +1,6 @@
 package analyzer
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,7 +43,7 @@ console.log("Hi"); // Line comment
 
 	// Analyze
 	analyzer := NewCodeAnalyzer()
-	profile, _, err := analyzer.AnalyzeCodeProfile(context.Background(), tmpDir)
+	profile, _, err := analyzer.AnalyzeCodeProfile(tmpDir)
 	if err != nil {
 		t.Fatalf("AnalyzeCodeProfile failed: %v", err)
 	}
@@ -56,7 +55,7 @@ console.log("Hi"); // Line comment
 
 	// Check Go stats
 	var goFound bool
-	for _, lang := range profile.Languages {
+	for _, lang := range profile.LanguageInfos {
 		if lang.Name == "Go" {
 			goFound = true
 			if lang.Files != 1 {

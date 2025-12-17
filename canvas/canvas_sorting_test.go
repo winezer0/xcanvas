@@ -75,9 +75,9 @@ func main() {
 	}
 
 	// 运行分析
-	result, err := AnalyzeDirectory(tmpDir, "")
+	result, err := ToSimpleReport(tmpDir, "")
 	if err != nil {
-		t.Fatalf("AnalyzeDirectory 失败: %v", err)
+		t.Fatalf("ToSimpleReport 失败: %v", err)
 	}
 
 	// 验证前端语言
@@ -135,8 +135,8 @@ func main() {
 		t.Error("未检测到 Go 为主要后端语言")
 	}
 
-	// 验证 Languages 字段
-	if len(result.Languages) == 0 {
-		t.Error("Languages 列表不应为空")
+	// 验证 LanguageInfos 字段
+	if len(result.LanguageInfos) == 0 {
+		t.Error("LanguageInfos 列表不应为空")
 	}
 }

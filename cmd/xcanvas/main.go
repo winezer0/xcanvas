@@ -92,7 +92,7 @@ func outputText(report *model.CanvasReport) {
 
 	// Frontend languages
 	if len(report.CodeProfile.FrontendLanguages) > 0 {
-		fmt.Println("Frontend Languages:")
+		fmt.Println("Frontend LanguageInfos:")
 		for _, lang := range report.CodeProfile.FrontendLanguages {
 			fmt.Printf("- %s\n", lang)
 		}
@@ -101,7 +101,7 @@ func outputText(report *model.CanvasReport) {
 
 	// Backend languages
 	if len(report.CodeProfile.BackendLanguages) > 0 {
-		fmt.Println("Backend Languages:")
+		fmt.Println("Backend LanguageInfos:")
 		for _, lang := range report.CodeProfile.BackendLanguages {
 			fmt.Printf("- %s\n", lang)
 		}
@@ -109,8 +109,8 @@ func outputText(report *model.CanvasReport) {
 	}
 
 	// All languages (verbose only)
-	fmt.Println("All Languages:")
-	for _, lang := range report.CodeProfile.Languages {
+	fmt.Println("All LanguageInfos:")
+	for _, lang := range report.CodeProfile.LanguageInfos {
 		fmt.Printf("- %s: %d files, %d lines\n", lang.Name, lang.Files, lang.CodeLines)
 	}
 	fmt.Println()

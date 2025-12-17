@@ -2,10 +2,11 @@ package classifier
 
 import (
 	"encoding/json"
-	"github.com/winezer0/codecanvas/internal/model"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/winezer0/codecanvas/internal/model"
 )
 
 type LanguageSyntaxFeatures struct {
@@ -49,41 +50,56 @@ func (c *LanguageClassifier) LoadFromFile(path string) error {
 	return nil
 }
 
-func (c *LanguageClassifier) DetectCategories(root string, langs []model.LanguageInfo) (frontend []string, backend []string, desktop []string) {
-	fset := map[string]bool{}
-	bset := map[string]bool{}
-	dset := map[string]bool{}
+func (c *LanguageClassifier) DetectCategories(root string, langs []model.LanguageInfo) (frontend []string, backend []string, desktop []string, all []string) {
+	fset := make(map[string]bool)
+	bset := make(map[string]bool)
+	dset := make(map[string]bool)
+	allSet := make(map[string]bool) // 用于去重所有语言
+
 	deps := c.readPackageJSONDeps(root)
+
 	for _, li := range langs {
 		name := strings.ToLower(li.Name)
 		r, ok := c.rules[name]
 		if ok {
 			cat := c.applyHeuristics(root, r, deps)
-			if cat == model.CategoryFrontend {
+			switch cat {
+			case model.CategoryFrontend:
 				fset[li.Name] = true
-			} else if cat == model.CategoryBackend {
+			case model.CategoryBackend:
 				bset[li.Name] = true
-			} else if cat == model.CategoryDesktop {
+			case model.CategoryDesktop:
 				dset[li.Name] = true
 			}
-			continue
+		} else {
+			if model.FrontendLanguageSet[li.Name] {
+				fset[li.Name] = true
+			} else if model.BackendLanguageSet[li.Name] {
+				bset[li.Name] = true
+			}
+			// 注意：Desktop 只能通过 rules 判断？根据原逻辑，是的。
 		}
-		if model.FrontendLanguageSet[li.Name] {
-			fset[li.Name] = true
-		} else if model.BackendLanguageSet[li.Name] {
-			bset[li.Name] = true
-		}
+
+		// 所有语言都加入 allSet（去重）
+		allSet[li.Name] = true
 	}
-	for k := range fset {
-		frontend = append(frontend, k)
-	}
-	for k := range bset {
-		backend = append(backend, k)
-	}
-	for k := range dset {
-		desktop = append(desktop, k)
-	}
+
+	// 提取结果（保持顺序无关，若需排序可加 sort.Strings）
+	frontend = keys(fset)
+	backend = keys(bset)
+	desktop = keys(dset)
+	all = keys(allSet)
+
 	return
+}
+
+// keys 辅助函数：从 map[string]bool 提取所有 key
+func keys(m map[string]bool) []string {
+	result := make([]string, 0, len(m))
+	for k := range m {
+		result = append(result, k)
+	}
+	return result
 }
 
 func (c *LanguageClassifier) applyHeuristics(root string, r LanguageClassificationRule, deps map[string]bool) string {

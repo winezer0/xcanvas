@@ -1,4 +1,4 @@
-package canvas
+package analyzer
 
 // expandLanguages 在给定的语言列表中，自动补充关联语言，以确保语义完整性。
 // 例如：
