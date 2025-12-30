@@ -15,7 +15,7 @@ import (
 // Options defines the command-line parameters for CodeCanvas.
 type Options struct {
 	// Analysis parameters
-	Path     string `short:"p" long:"path" description:"Path to the codebase to analyze"`
+	Path     string `short:"p" long:"path" description:"Path to the codebase to analyze" required:"true"`
 	RulesDir string `short:"r" long:"rules" description:"Directory containing detection RulesDirDir" default:"./rules"`
 	Output   string `short:"o" long:"output" description:"Write JSON to path or URL"`
 
@@ -27,7 +27,7 @@ type Options struct {
 }
 
 const (
-	AppName      = "codecanvas"
+	AppName      = "xcanvas"
 	AppShortDesc = "Code fingerprint analysis"
 	AppLongDesc  = "Code fingerprint analysis"
 	AppVersion   = "0.0.9"

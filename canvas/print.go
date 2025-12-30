@@ -6,10 +6,11 @@ import (
 
 	"github.com/winezer0/xcanvas/internal/model"
 	"github.com/winezer0/xcanvas/internal/utils"
+	"github.com/winezer0/xcanvas/models"
 )
 
 // PrintReport outputs the analysis report in text format.
-func PrintReport(report *model.CanvasReport) {
+func PrintReport(report *models.CanvasReport) {
 	fmt.Println("CodeCanvas Analysis Report")
 	fmt.Println("=========================")
 	fmt.Printf("Path: %s\n", report.CodeProfile.Path)

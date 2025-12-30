@@ -36,6 +36,9 @@ func NewLogConfig(level, logFile, consoleFormat string) LogConfig {
 	if level == "" {
 		level = "info" // 默认info级别
 	}
+	if consoleFormat == "" {
+		consoleFormat = "TLM"
+	}
 	return LogConfig{
 		Level:         level,
 		LogFile:       logFile,
