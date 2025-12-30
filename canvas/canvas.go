@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/winezer0/codecanvas/internal/analyzer"
-	"github.com/winezer0/codecanvas/internal/frameengine"
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/analyzer"
+	"github.com/winezer0/xcanvas/internal/frameengine"
+	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // Analyze performs a full analysis and returns a CanvasReport.

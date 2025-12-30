@@ -3,10 +3,10 @@ package langengine
 import (
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/embeds"
-	"github.com/winezer0/codecanvas/internal/logging"
-	"github.com/winezer0/codecanvas/internal/model"
-	"github.com/winezer0/codecanvas/internal/utils"
+	"github.com/winezer0/xcanvas/internal/embeds"
+	"github.com/winezer0/xcanvas/internal/logging"
+	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/utils"
 )
 
 // LangClassify 语言分类器的主结构体

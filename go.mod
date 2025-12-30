@@ -1,4 +1,4 @@
-module github.com/winezer0/codecanvas
+module github.com/winezer0/xcanvas
 
 go 1.25.5
 

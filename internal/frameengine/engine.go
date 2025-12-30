@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // formatVersion 格式化版本号，去除常见前缀和多余字符

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/embeds"
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/embeds"
+	"github.com/winezer0/xcanvas/internal/model"
 	"gopkg.in/yaml.v3"
 )
 

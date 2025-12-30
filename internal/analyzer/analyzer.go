@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/winezer0/codecanvas/internal/langengine"
-	"github.com/winezer0/codecanvas/internal/logging"
-	"github.com/winezer0/codecanvas/internal/model"
-	"github.com/winezer0/codecanvas/internal/utils"
+	"github.com/winezer0/xcanvas/internal/langengine"
+	"github.com/winezer0/xcanvas/internal/logging"
+	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/utils"
 )
 
 // CodeAnalyzer 实现代码画像分析功能。

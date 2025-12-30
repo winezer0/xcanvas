@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/winezer0/codecanvas/canvas"
-	"github.com/winezer0/codecanvas/internal/logging"
-	"github.com/winezer0/codecanvas/internal/utils"
+	"github.com/winezer0/xcanvas/canvas"
+	"github.com/winezer0/xcanvas/internal/logging"
+	"github.com/winezer0/xcanvas/internal/utils"
 )
 
 // Options defines the command-line parameters for CodeCanvas.
@@ -30,8 +30,8 @@ const (
 	AppName      = "codecanvas"
 	AppShortDesc = "Code fingerprint analysis"
 	AppLongDesc  = "Code fingerprint analysis"
-	AppVersion   = "0.0.8"
-	BuildDate    = "2025-12-22"
+	AppVersion   = "0.0.9"
+	BuildDate    = "2025-12-30"
 )
 
 func main() {

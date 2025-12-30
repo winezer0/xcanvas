@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/winezer0/codecanvas/internal/model"
-	"github.com/winezer0/codecanvas/internal/utils"
+	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/utils"
 )
 
 // PrintReport outputs the analysis report in text format.

@@ -6,9 +6,9 @@ import (
 	"io/fs"
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/frameembeds"
-	"github.com/winezer0/codecanvas/internal/langembeds"
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/frameembeds"
+	"github.com/winezer0/xcanvas/internal/langembeds"
+	"github.com/winezer0/xcanvas/internal/model"
 
 	"gopkg.in/yaml.v3"
 )

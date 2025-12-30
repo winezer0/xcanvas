@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // TestNewRuleEngine tests the creation of a new rule engine with rules loaded from a directory.

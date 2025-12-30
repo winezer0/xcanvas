@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/logging"
-	"github.com/winezer0/codecanvas/internal/model"
-	"github.com/winezer0/codecanvas/internal/utils"
+	"github.com/winezer0/xcanvas/internal/logging"
+	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/utils"
 )
 
 // containsAllKeywords 检查文件内容是否包含所有必需的关键字。

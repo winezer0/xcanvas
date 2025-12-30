@@ -14,7 +14,7 @@
 ### 安装
 
 ```bash
-go install github.com/winezer0/codecanvas/cmd/codecanvas@latest
+go install github.com/winezer0/xcanvas/cmd/codecanvas@latest
 ```
 
 ## 规则说明

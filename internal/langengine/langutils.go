@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // ApplyDynamicHeuristics 应用动态分类规则对语言进行分类

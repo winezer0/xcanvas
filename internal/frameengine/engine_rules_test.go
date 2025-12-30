@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/winezer0/codecanvas/internal/model"
+	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // TestEmbeddedRules verifies that every embedded rule can be triggered by a minimal test case.
