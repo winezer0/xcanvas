@@ -86,6 +86,6 @@ func main() {
 		}
 
 		// 输出命令行报告
-		canvas.PrintReport(report)
+		report.PrintCanvasReport()
 	}
 }

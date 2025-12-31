@@ -13,12 +13,12 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// -------------------------- 跨包全局日志器（按需定义） --------------------------
-// 定义需要跨包使用的全局日志器，建议用明确的语义化命名（避免泛称如"newLogger"）
+// -------------------------- 跨包全局日志器(按需定义) --------------------------
+// 定义需要跨包使用的全局日志器，建议用明确的语义化命名(避免泛称如"newLogger")
 //var (
-//	// APILogger API模块专用日志器（供所有包调用）
+//	// APILogger API模块专用日志器(供所有包调用)
 //	APILogger *Logger
-// 第一步：优先初始化全局日志器（必须在所有业务逻辑前） 程序退出时关闭所有日志器，刷新缓冲区
+// 第一步：优先初始化全局日志器(必须在所有业务逻辑前) 程序退出时关闭所有日志器，刷新缓冲区
 //if err := log.InitGlobalLoggers(); err != nil { panic(fmt.Sprintf("init global loggers failed: %+v", err)) }
 //defer log.CloseAll()
 
@@ -37,7 +37,7 @@ func NewLogConfig(level, logFile, consoleFormat string) LogConfig {
 		level = "info" // 默认info级别
 	}
 	if consoleFormat == "" {
-		consoleFormat = "TLM"
+		consoleFormat = "LCM"
 	}
 	return LogConfig{
 		Level:         level,
@@ -56,7 +56,7 @@ type Logger struct {
 	mu        sync.RWMutex
 }
 
-// init 初始化日志器核心（已修正EncodeTime配置）
+// init 初始化日志器核心(已修正EncodeTime配置)
 func (l *Logger) init() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -80,10 +80,10 @@ func (l *Logger) init() error {
 		))
 	}
 
-	// 文件输出（带日志轮转，正确配置时间格式）
+	// 文件输出(带日志轮转，正确配置时间格式)
 	if l.config.LogFile != "" {
 		if err := EnsureDir(l.config.LogFile); err != nil {
-			return fmt.Errorf("创建日志目录失败: %w", err)
+			return fmt.Errorf("failed to create log dir: %w", err)
 		}
 
 		// 日志轮转配置
@@ -95,11 +95,11 @@ func (l *Logger) init() error {
 			Compress:   true, // 压缩备份文件
 		}
 
-		// 配置文件日志编码器（含时间格式）
+		// 配置文件日志编码器(含时间格式)
 		fileEncoderCfg := zap.NewProductionEncoderConfig()
-		// 配置时间格式为ISO8601（如：2024-05-20T15:30:00.000Z）
+		// 配置时间格式为ISO8601(如：2024-05-20T15:30:00.000Z)
 		fileEncoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
-		// （可选）自定义时间格式示例（如：2024-05-20 15:30:00.000）
+		// (可选)自定义时间格式示例(如：2024-05-20 15:30:00.000)
 		// fileEncoderCfg.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		// 	enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
 		// }
@@ -114,13 +114,13 @@ func (l *Logger) init() error {
 	}
 
 	if len(cores) == 0 {
-		return fmt.Errorf("未配置日志输出目标（控制台/文件）")
+		return fmt.Errorf("no log output (console/file) has been configured")
 	}
 
 	// 创建zap日志器
 	l.zapLogger = zap.New(
 		zapcore.NewTee(cores...),
-		zap.AddCaller(),      // 显示调用位置（如 main.go:20）
+		zap.AddCaller(),      // 显示调用位置(如 main.go:20)
 		zap.AddCallerSkip(2), // 跳过内部方法，显示真实业务代码位置
 	)
 	l.sugar = l.zapLogger.Sugar()
@@ -243,7 +243,7 @@ func getManager() *loggerManager {
 // CreateLogger 创建新的日志器
 func CreateLogger(name string, config LogConfig) (*Logger, error) {
 	if name == "" {
-		return nil, fmt.Errorf("日志器名称不能为空")
+		return nil, fmt.Errorf("log recorder name cannot be empty")
 	}
 
 	manager := getManager()
@@ -251,7 +251,7 @@ func CreateLogger(name string, config LogConfig) (*Logger, error) {
 	_, exists := manager.loggers[name]
 	manager.mu.RUnlock()
 	if exists {
-		return nil, fmt.Errorf("日志器 '%s' 已存在", name)
+		return nil, fmt.Errorf("log recorder already exist: %s", name)
 	}
 
 	logger := &Logger{config: config}
@@ -284,7 +284,7 @@ func CloseAll() error {
 	var errList []error
 	for name, logger := range manager.loggers {
 		if err := logger.Sync(); err != nil {
-			errList = append(errList, fmt.Errorf("关闭日志器 '%s' 失败: %w", name, err))
+			errList = append(errList, fmt.Errorf("close log recorder '%s' error: %w", name, err))
 		}
 	}
 	manager.loggers = make(map[string]*Logger)
