@@ -1,4 +1,4 @@
-package models
+package camodels
 
 import (
 	"time"

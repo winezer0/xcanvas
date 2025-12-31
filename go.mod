@@ -15,6 +15,3 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 )
 
-replace github.com/tree-sitter/tree-sitter-c_sharp => github.com/tree-sitter/tree-sitter-c-sharp v0.23.0
-
-replace github.com/tree-sitter/tree-sitter-typescript/bindings/go => github.com/tree-sitter/tree-sitter-typescript v0.23.2

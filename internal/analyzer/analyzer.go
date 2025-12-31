@@ -12,7 +12,7 @@ import (
 	"github.com/winezer0/xcanvas/internal/logging"
 	"github.com/winezer0/xcanvas/internal/model"
 	"github.com/winezer0/xcanvas/internal/utils"
-	"github.com/winezer0/xcanvas/models"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // CodeAnalyzer 实现代码画像分析功能。
@@ -55,7 +55,7 @@ func init() {
 }
 
 // AnalyzeCodeProfile 分析给定路径下的代码库并返回代码画像和文件索引。
-func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*models.CodeProfile, *model.FileIndex, error) {
+func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodeProfile, *model.FileIndex, error) {
 	// 获取绝对路径
 	absPath, err := filepath.Abs(projectPath)
 	if err != nil {
@@ -170,9 +170,9 @@ func autoWorkers() int {
 }
 
 // convertToCodeProfile converts statistics to CodeCanvas CodeProfile.
-func convertToCodeProfile(absPath string, stats map[string]*model.LangSummary, errorFiles int) *models.CodeProfile {
+func convertToCodeProfile(absPath string, stats map[string]*model.LangSummary, errorFiles int) *camodels.CodeProfile {
 
-	profile := &models.CodeProfile{
+	profile := &camodels.CodeProfile{
 		Path:              absPath,
 		TotalFiles:        0,
 		TotalLines:        0,
