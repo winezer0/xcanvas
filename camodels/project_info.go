@@ -12,14 +12,14 @@ type ProjectInfo struct {
 }
 
 // NewEmptyProjectInfo 创建并返回一个默认初始化的 ProjectInfo 实例。
-func NewEmptyProjectInfo() *ProjectInfo {
+func NewEmptyProjectInfo(s string) *ProjectInfo {
 	return &ProjectInfo{
-		ProjectPath:       "",
+		ProjectPath:       s,
 		Languages:         []string{},
-		Frameworks:        map[string]string{},
-		Components:        map[string]string{},
 		BackendLanguages:  []string{},
 		FrontendLanguages: []string{},
+		Frameworks:        map[string]string{},
+		Components:        map[string]string{},
 		FilesCount:        0,
 	}
 }

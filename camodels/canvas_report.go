@@ -52,6 +52,8 @@ type CanvasSimple struct {
 	Frameworks map[string]string `json:"frameworks"`
 	// 组件信息列表，名称到版本的映射
 	Components map[string]string `json:"components"`
+	// 记录分析文件数量
+	TotalFiles int `json:"total_files"`
 }
 
 // ToSimpleReport 转换为简单的报告模式
@@ -59,6 +61,7 @@ func (report *CanvasReport) ToSimpleReport() *CanvasSimple {
 	// 转换语言列表为 Map 以便快速查找统计信息
 	langStats := languageInfosToMap(report.CodeProfile.LanguageInfos)
 	result := &CanvasSimple{
+		TotalFiles:            report.CodeProfile.TotalFiles,
 		LanguageInfos:         report.CodeProfile.LanguageInfos,
 		Languages:             report.CodeProfile.Languages,
 		DesktopLanguages:      report.CodeProfile.DesktopLanguages,
