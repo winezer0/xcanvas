@@ -2,8 +2,9 @@ package camodels
 
 // ProjectInfo 封装运行级（项目级）的自定义扩展属性，存储整个项目的画像信息 和其他项目信息
 type ProjectInfo struct {
-	ProjectPath       string            `json:"projectPath,omitempty"` // 项目路径（自定义扩展字段，）
-	Languages         []string          `json:"languages,omitempty"`   // 项目级代码语言列表（自定义扩展字段，，）
+	ProjectName       string            `json:"projectName"`         // 项目名称
+	ProjectPath       string            `json:"projectPath"`         // 项目路径（自定义扩展字段，）
+	Languages         []string          `json:"languages,omitempty"` // 项目级代码语言列表（自定义扩展字段，，）
 	BackendLanguages  []string          `json:"backendLanguages,omitempty"`
 	FrontendLanguages []string          `json:"frontendLanguages,omitempty"`
 	Frameworks        map[string]string `json:"frameworks,omitempty"` // 项目级框架列表（自定义扩展字段，）
@@ -12,9 +13,10 @@ type ProjectInfo struct {
 }
 
 // NewEmptyProjectInfo 创建并返回一个默认初始化的 ProjectInfo 实例。
-func NewEmptyProjectInfo(s string) *ProjectInfo {
+func NewEmptyProjectInfo(projectName, projectPath string) *ProjectInfo {
 	return &ProjectInfo{
-		ProjectPath:       s,
+		ProjectName:       projectName,
+		ProjectPath:       projectPath,
 		Languages:         []string{},
 		BackendLanguages:  []string{},
 		FrontendLanguages: []string{},

@@ -6,11 +6,11 @@ import (
 )
 
 // InitProjectCanvasInfo 初始化項目信息 并分析canvasReport
-func InitProjectCanvasInfo(projectPath string, rulesDir string) *camodels.ProjectInfo {
+func InitProjectCanvasInfo(projectName, projectPath, canvasRulesDir string) *camodels.ProjectInfo {
 	// 初始化项目画像信息
-	projectInfo := camodels.NewEmptyProjectInfo(projectPath)
+	projectInfo := camodels.NewEmptyProjectInfo(projectName, projectPath)
 	// 获取 xcanvas 代码画像 使用 Analyze 获取语言、框架和组件信息
-	canvasReport, err := Analyze(projectPath, rulesDir)
+	canvasReport, err := Analyze(projectPath, canvasRulesDir)
 	if err != nil {
 		logging.Errorf("xcanvas detection failed: %v", err)
 	} else {
