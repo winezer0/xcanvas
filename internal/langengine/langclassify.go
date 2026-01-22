@@ -4,9 +4,8 @@ import (
 	"strings"
 
 	"github.com/winezer0/xcanvas/internal/embeds"
-	"github.com/winezer0/xcanvas/internal/logging"
 	"github.com/winezer0/xcanvas/internal/model"
-	"github.com/winezer0/xcanvas/internal/utils"
+	"github.com/winezer0/xutils/logging"
 )
 
 // LangClassify 语言分类器的主结构体
@@ -75,11 +74,24 @@ func (c *LangClassify) DetectCategories(root string, langs []model.LangInfo) (fr
 	}
 
 	// 提取结果（保持顺序无关，若需排序可加 sort.Strings）
-	frontend = utils.Mapkeys(frontedSet)
-	backend = utils.Mapkeys(backendSet)
-	desktop = utils.Mapkeys(desktopSet)
-	other = utils.Mapkeys(otherSet)
-	all = utils.Mapkeys(allSet)
+	frontend = mapkeys(frontedSet)
+	backend = mapkeys(backendSet)
+	desktop = mapkeys(desktopSet)
+	other = mapkeys(otherSet)
+	all = mapkeys(allSet)
 	expand = ExpandLanguages(all)
 	return
+}
+
+// mapkeys 辅助函数：从 map[string]bool 提取所有 key
+// 参数:
+// - m: 输入的映射
+// 返回值:
+// - []string: 映射中所有的键组成的切片
+func mapkeys(m map[string]bool) []string {
+	result := make([]string, 0, len(m))
+	for k := range m {
+		result = append(result, k)
+	}
+	return result
 }

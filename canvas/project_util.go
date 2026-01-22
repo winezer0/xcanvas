@@ -2,7 +2,7 @@ package canvas
 
 import (
 	"github.com/winezer0/xcanvas/camodels"
-	"github.com/winezer0/xcanvas/internal/logging"
+	"github.com/winezer0/xutils/logging"
 )
 
 // InitProjectCanvasInfo 初始化項目信息 并分析canvasReport

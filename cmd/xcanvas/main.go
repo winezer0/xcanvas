@@ -8,8 +8,8 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/winezer0/xcanvas/canvas"
-	"github.com/winezer0/xcanvas/internal/logging"
-	"github.com/winezer0/xcanvas/internal/utils"
+	"github.com/winezer0/xutils/logging"
+	"github.com/winezer0/xutils/utils"
 )
 
 // Options defines the command-line parameters for CodeCanvas.
@@ -78,8 +78,7 @@ func main() {
 
 		// 输出Json结果
 		if opts.Output != "" {
-			utils.EnsureDir(opts.Output, true)
-			if err := utils.WriteJSON(opts.Output, report); err != nil {
+			if err := utils.SaveJSON(opts.Output, report); err != nil {
 				fmt.Printf("Error writing output: %v\n", err)
 				os.Exit(1)
 			}

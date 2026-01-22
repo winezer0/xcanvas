@@ -1,13 +1,13 @@
 package frameengine
 
 import (
+	"github.com/winezer0/xutils/utils"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/logging"
 	"github.com/winezer0/xcanvas/internal/model"
-	"github.com/winezer0/xcanvas/internal/utils"
+	"github.com/winezer0/xutils/logging"
 )
 
 // containsAllKeywords 检查文件内容是否包含所有必需的关键字。

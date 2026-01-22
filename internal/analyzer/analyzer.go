@@ -2,17 +2,18 @@
 package analyzer
 
 import (
+	"github.com/winezer0/xutils/progress"
+	"github.com/winezer0/xutils/utils"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 
-	"github.com/winezer0/xcanvas/internal/langengine"
-	"github.com/winezer0/xcanvas/internal/logging"
-	"github.com/winezer0/xcanvas/internal/model"
-	"github.com/winezer0/xcanvas/internal/utils"
 	"github.com/winezer0/xcanvas/camodels"
+	"github.com/winezer0/xcanvas/internal/langengine"
+	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xutils/logging"
 )
 
 // CodeAnalyzer 实现代码画像分析功能。
@@ -63,11 +64,58 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 	}
 	// 初始化文件索引
 	fileIndex := model.NewFileIndex(absPath)
+
+	// 1. 先收集所有任务
+	var taskList []AnalysisTask
+
+	// 遍历目录并收集任务
+	err = filepath.WalkDir(absPath, func(path string, dirEntry os.DirEntry, err error) error {
+		if err != nil {
+			// 如果无法访问文件/目录，跳过
+			return nil
+		}
+		if dirEntry.IsDir() {
+			// 跳过隐藏目录，如 .git
+			if strings.HasPrefix(dirEntry.Name(), ".") && dirEntry.Name() != "." {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		// 计算相对路径并添加到索引 (保持在主协程，无需锁)
+		relPath, _ := filepath.Rel(absPath, path)
+		// 统一使用 "/" 作为路径分隔符
+		relPath = filepath.ToSlash(relPath)
+		fileIndex.AddFile(relPath, dirEntry.Name(), filepath.Ext(dirEntry.Name()))
+
+		// 识别语言
+		langDef := extToLanguage[strings.ToLower(filepath.Ext(path))]
+		if langDef == nil {
+			langDef = fileToLanguage[dirEntry.Name()]
+		}
+
+		if langDef != nil {
+			// 收集任务
+			taskList = append(taskList, AnalysisTask{
+				Path:    path,
+				LangDef: langDef,
+			})
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// 2. 初始化进度条
+	bar := progress.NewProcessBarByTotalTask(int64(len(taskList)), "Analyzing Code")
+
 	// 准备并发处理
 	workers := autoWorkers()
 
-	tasks := make(chan AnalysisTask, workers)
-	results := make(chan AnalysisResult, workers)
+	tasks := make(chan AnalysisTask, len(taskList))
+	results := make(chan AnalysisResult, len(taskList))
 	var wg sync.WaitGroup
 
 	// 启动 Worker Pool
@@ -82,6 +130,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 					Stats:    stats,
 					Err:      err,
 				}
+				_ = bar.Add(1)
 			}
 		}()
 	}
@@ -109,50 +158,15 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 		close(done)
 	}()
 
-	// 遍历目录并分发任务
-	err = filepath.WalkDir(absPath, func(path string, dirEntry os.DirEntry, err error) error {
-		if err != nil {
-			// 如果无法访问文件/目录，跳过
-			return nil
-		}
-		if dirEntry.IsDir() {
-			// 跳过隐藏目录，如 .git
-			if strings.HasPrefix(dirEntry.Name(), ".") && dirEntry.Name() != "." {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-
-		// 计算相对路径并添加到索引 (保持在主协程，无需锁)
-		relPath, _ := filepath.Rel(absPath, path)
-		// 统一使用 "/" 作为路径分隔符
-		relPath = filepath.ToSlash(relPath)
-		fileIndex.AddFile(relPath, dirEntry.Name(), filepath.Ext(dirEntry.Name()))
-
-		// 识别语言
-		langDef := extToLanguage[strings.ToLower(filepath.Ext(path))]
-		if langDef == nil {
-			langDef = fileToLanguage[dirEntry.Name()]
-		}
-
-		if langDef != nil {
-			// 分发任务
-			tasks <- AnalysisTask{
-				Path:    path,
-				LangDef: langDef,
-			}
-		}
-		return nil
-	})
+	// 发送任务
+	for _, task := range taskList {
+		tasks <- task
+	}
 
 	close(tasks)   // 停止发送任务
 	wg.Wait()      // 等待所有 Worker 完成
 	close(results) // 停止发送结果
 	<-done         // 等待结果收集完成
-
-	if err != nil {
-		return nil, nil, err
-	}
 
 	codeProfile := convertToCodeProfile(absPath, stats, errorFiles)
 	return codeProfile, fileIndex, nil
