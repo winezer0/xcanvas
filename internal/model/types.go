@@ -39,9 +39,9 @@ type DetectedItem struct {
 type LangInfo struct {
 	Name         string `json:"name"` // 例如: "Java", "YAML"
 	Files        int    `json:"files"`
-	CodeLines    int    `json:"code_lines"`
-	CommentLines int    `json:"comment_lines"`
-	BlankLines   int    `json:"blank_lines"`
+	CodeLines    int    `json:"codeLines"`
+	CommentLines int    `json:"commentLines"`
+	BlankLines   int    `json:"blankLines"`
 }
 
 // FrameworkMetadata 支持列表元数据 描述了 CodeCanvas 能够识别的一种框架。

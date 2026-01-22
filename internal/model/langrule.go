@@ -6,7 +6,7 @@ package model
 // - Dependencies: 关联依赖包（满足任一即可）
 type DynamicCategory struct {
 	Category     string   `json:"category"`
-	FilePatterns []string `json:"file_patterns"`
+	FilePatterns []string `json:"filePatterns"`
 	Dependencies []string `json:"dependencies"`
 }
 
@@ -20,8 +20,8 @@ type DynamicCategory struct {
 // - Dynamic: 动态分类规则列表
 type Language struct {
 	Name         string            `json:"name"`
-	LineComments []string          `json:"line_comments"`
-	MultiLine    [][]string        `json:"multi_line"`
+	LineComments []string          `json:"lineComments"`
+	MultiLine    [][]string        `json:"multiLine"`
 	Extensions   []string          `json:"extensions"`
 	Filenames    []string          `json:"filenames"`
 	Category     string            `json:"category"`
