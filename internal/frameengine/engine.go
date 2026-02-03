@@ -2,7 +2,6 @@
 package frameengine
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -39,10 +38,10 @@ type CanvasEngine struct {
 	componentRules map[string]*model.Framework
 }
 
-// NewCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
+// InitCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
 // 如果提供了规则目录（rulesDir），则会从该目录加载规则，并将其与嵌入式规则合并，
 // 其中用户定义的规则将覆盖具有相同名称的嵌入式规则。
-func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
+func InitCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	engine := &CanvasEngine{
 		rules:          []*model.Framework{},
 		frameworkRules: make(map[string]*model.Framework),
@@ -65,7 +64,7 @@ func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 
 // DetectFrameworks 根据加载的规则检测给定目录中的框架和组件。
 // 使用文件索引进行加速。
-func (e *CanvasEngine) DetectFrameworks(ctx context.Context, index *model.FileIndex, languages []string) (*model.DetectionInfo, error) {
+func (e *CanvasEngine) DetectFrameworks(index *model.FileIndex, languages []string) (*model.DetectionInfo, error) {
 	result := &model.DetectionInfo{
 		Frameworks: []model.DetectedItem{},
 		Components: []model.DetectedItem{},

@@ -1,7 +1,8 @@
 package camodels
 
 import (
-	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/winezer0/xcanvas/internal/model"
@@ -76,71 +77,69 @@ func (report *CanvasReport) ToSimpleReport() *CanvasSimple {
 	return result
 }
 
-// PrintCanvasReport outputs the analysis report in text format.
-func (report *CanvasReport) PrintCanvasReport() {
-	fmt.Println("CodeCanvas Analysis Report")
-	fmt.Println("=========================")
-	fmt.Printf("Path: %s\n", report.CodeProfile.Path)
-	fmt.Printf("Total Files: %d\n", report.CodeProfile.TotalFiles)
-	fmt.Printf("Total Lines: %d\n", report.CodeProfile.TotalLines)
-	fmt.Println()
+func languageInfosToMap(languageInfos []model.LangInfo) map[string]model.LangInfo {
+	langStats := make(map[string]model.LangInfo)
+	for _, l := range languageInfos {
+		langStats[l.Name] = l
+	}
+	return langStats
+}
 
-	// Frontend languages
-	if len(report.CodeProfile.FrontendLanguages) > 0 {
-		fmt.Println("Frontend LanguageInfos:")
-		for _, lang := range report.CodeProfile.FrontendLanguages {
-			fmt.Printf("- %s\n", lang)
+// getItemsWithVersions 提取去重后的 items (组件名或者框架名)及其版本，返回名称到版本的映射
+func getItemsWithVersions(items []model.DetectedItem) map[string]string {
+	result := make(map[string]string)
+
+	for _, item := range items {
+		name := item.Name
+		if name == "" {
+			continue // 跳过空名称
 		}
-		fmt.Println()
-	}
-
-	// Backend languages
-	if len(report.CodeProfile.BackendLanguages) > 0 {
-		fmt.Println("Backend LanguageInfos:")
-		for _, lang := range report.CodeProfile.BackendLanguages {
-			fmt.Printf("- %s\n", lang)
+		// 如果版本为空，使用空字符串
+		version := item.Version
+		// 如果已经存在，不覆盖，保留第一个匹配的版本
+		if _, exists := result[name]; !exists {
+			result[name] = version
 		}
-		fmt.Println()
 	}
 
-	// Desktop languages
-	if len(report.CodeProfile.DesktopLanguages) > 0 {
-		fmt.Println("Desktop LanguageInfos:")
-		for _, lang := range report.CodeProfile.DesktopLanguages {
-			fmt.Printf("- %s\n", lang)
+	return result
+}
+
+// getTopLanguages 根据代码行数和文件数对语言进行排序并返回前 N 个
+func getTopLanguages(candidates []string, stats map[string]model.LangInfo, exclude []string, limit int) []string {
+	// 过滤需要排除的语言
+	excludeMap := make(map[string]bool)
+	for _, e := range exclude {
+		excludeMap[strings.ToLower(e)] = true
+	}
+
+	var validLangs []model.LangInfo
+	for _, name := range candidates {
+		if excludeMap[strings.ToLower(name)] {
+			continue
 		}
-		fmt.Println()
-	}
-
-	// Other languages
-	if len(report.CodeProfile.OtherLanguages) > 0 {
-		fmt.Println("Other LanguageInfos:")
-		for _, lang := range report.CodeProfile.OtherLanguages {
-			fmt.Printf("- %s\n", lang)
+		if info, ok := stats[name]; ok {
+			validLangs = append(validLangs, info)
 		}
-		fmt.Println()
 	}
 
-	// All languages (verbose only)
-	fmt.Println("All LanguageInfos:")
-	for _, lang := range report.CodeProfile.LanguageInfos {
-		fmt.Printf("- %s: %d files, %d lines\n", lang.Name, lang.Files, lang.CodeLines)
-	}
-	fmt.Println()
+	// 排序：优先代码行数，其次文件数
+	sort.Slice(validLangs, func(i, j int) bool {
+		if validLangs[i].CodeLines != validLangs[j].CodeLines {
+			return validLangs[i].CodeLines > validLangs[j].CodeLines
+		}
+		return validLangs[i].Files > validLangs[j].Files
+	})
 
-	// Frameworks
-	if len(report.Detection.Frameworks) > 0 {
-		printDetectedItems("Detected Frameworks", report.Detection.Frameworks)
-	} else {
-		fmt.Printf("Detected Frameworks Is Empty !!!\n")
+	// 取前 N 个
+	var result []string
+	count := 0
+	for _, l := range validLangs {
+		if count >= limit {
+			break
+		}
+		result = append(result, l.Name)
+		count++
 	}
-
-	// Components
-	if len(report.Detection.Components) > 0 {
-		printDetectedItems("Detected Components", report.Detection.Components)
-	} else {
-		fmt.Printf("Detected Components Is Empty !!!\n")
-	}
-
-	fmt.Printf("Generated: %s\n", report.Timestamp.Format(time.RFC1123))
+	return result
 }

@@ -217,7 +217,7 @@ func convertToCodeProfile(absPath string, stats map[string]*model.LangSummary, e
 		profile.TotalLines += langInfo.CodeLines + langInfo.CommentLines + langInfo.BlankLines
 	}
 
-	logging.Infof("profile ToJson: %s", utils.ToJson(profile))
+	logging.Infof("profile ToJson: %s", utils.ToJSON(profile))
 
 	// 进行语言信息分析
 	frontend, backend, desktop, other, allLang, expand := langengine.NewLangClassifier().DetectCategories(absPath, profile.LanguageInfos)

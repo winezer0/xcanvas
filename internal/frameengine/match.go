@@ -55,7 +55,7 @@ func extractVersion(content []byte, patterns []string) string {
 func matchFrame(matcher *IndexMatcher, rules []model.FrameRule, fileContentCache map[string][]byte) bool {
 	for _, rule := range rules {
 		if len(rule.Paths) == 0 && len(rule.FileContents) == 0 {
-			logging.Errorf("match rules not has any match content: %s", utils.ToJson(rule))
+			logging.Errorf("match rules not has any match content: %s", utils.ToJSON(rule))
 			continue
 		}
 

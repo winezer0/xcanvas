@@ -1,7 +1,6 @@
 package frameengine
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +13,7 @@ import (
 // TestEmbeddedRules verifies that every embedded rule can be triggered by a minimal test case.
 func TestEmbeddedRules(t *testing.T) {
 	// Initialize engine with embedded rules
-	e, err := NewCanvasEngine("")
+	e, err := InitCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to initialize engine: %v", err)
 	}
@@ -37,8 +36,6 @@ func TestEmbeddedRules(t *testing.T) {
 				t.Skipf("Skipping rule %s: could not setup test environment (complex rule?)", framework.Name)
 			}
 
-			// Run detection
-			ctx := context.Background()
 			// We must provide the language the rule expects, otherwise it might skip
 			languages := []string{framework.Language}
 
@@ -48,7 +45,7 @@ func TestEmbeddedRules(t *testing.T) {
 				t.Fatalf("Failed to build file index: %v", err)
 			}
 
-			result, err := e.DetectFrameworks(ctx, index, languages)
+			result, err := e.DetectFrameworks(index, languages)
 			if err != nil {
 				t.Fatalf("DetectFrameworks failed: %v", err)
 			}

@@ -1,7 +1,6 @@
 package frameengine
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -36,7 +35,7 @@ func TestNewRuleEngine(t *testing.T) {
 	}
 
 	// Create a new rule engine with the test rules
-	ruleEngine, err := NewCanvasEngine(tempDir)
+	ruleEngine, err := InitCanvasEngine(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -86,7 +85,7 @@ func TestDetectFrameworks(t *testing.T) {
 	}
 
 	// Create a new rule engine with embedded rules only (empty rules directory)
-	ruleEngine, err := NewCanvasEngine("")
+	ruleEngine, err := InitCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -98,8 +97,7 @@ func TestDetectFrameworks(t *testing.T) {
 	}
 
 	// Detect frameworks in the test project
-	ctx := context.Background()
-	result, err := ruleEngine.DetectFrameworks(ctx, index, []string{"JavaScript"})
+	result, err := ruleEngine.DetectFrameworks(index, []string{"JavaScript"})
 	if err != nil {
 		t.Fatalf("Failed to detect frameworks: %v", err)
 	}
@@ -150,7 +148,7 @@ func TestDetectComponents(t *testing.T) {
 	}
 
 	// Create a new rule engine with embedded rules only (empty rules directory)
-	ruleEngine, err := NewCanvasEngine("")
+	ruleEngine, err := InitCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -162,8 +160,7 @@ func TestDetectComponents(t *testing.T) {
 	}
 
 	// Detect components in the test project
-	ctx := context.Background()
-	result, err := ruleEngine.DetectFrameworks(ctx, index, []string{"JavaScript"})
+	result, err := ruleEngine.DetectFrameworks(index, []string{"JavaScript"})
 	if err != nil {
 		t.Fatalf("Failed to detect components: %v", err)
 	}
@@ -199,7 +196,7 @@ func TestEdgeCases(t *testing.T) {
 	defer os.RemoveAll(emptyDir)
 
 	// Create a rule engine with empty rules directory
-	ruleEngine, err := NewCanvasEngine(emptyDir)
+	ruleEngine, err := InitCanvasEngine(emptyDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine with empty directory: %v", err)
 	}
@@ -221,8 +218,7 @@ func TestEdgeCases(t *testing.T) {
 		t.Fatalf("Failed to build file index: %v", err)
 	}
 
-	ctx := context.Background()
-	result, err := ruleEngine.DetectFrameworks(ctx, index, []string{"Java"})
+	result, err := ruleEngine.DetectFrameworks(index, []string{"Java"})
 	if err != nil {
 		t.Fatalf("Failed to detect frameworks with no matching files: %v", err)
 	}
@@ -286,7 +282,7 @@ func TestDetectVersion(t *testing.T) {
 	}
 
 	// Create a rule engine with the custom rules
-	ruleEngine, err := NewCanvasEngine(tempDir)
+	ruleEngine, err := InitCanvasEngine(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -298,8 +294,7 @@ func TestDetectVersion(t *testing.T) {
 	}
 
 	// Detect frameworks in the test project
-	ctx := context.Background()
-	result, err := ruleEngine.DetectFrameworks(ctx, index, []string{"JavaScript"})
+	result, err := ruleEngine.DetectFrameworks(index, []string{"JavaScript"})
 	if err != nil {
 		t.Fatalf("Failed to detect frameworks: %v", err)
 	}
@@ -324,7 +319,7 @@ func TestDetectVersion(t *testing.T) {
 // TestEmbeddedRulesLoad tests that embedded rules are correctly loaded
 func TestEmbeddedRulesLoad(t *testing.T) {
 	// Create a new rule engine without any custom rules (should use embedded only)
-	ruleEngine, err := NewCanvasEngine("")
+	ruleEngine, err := InitCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}

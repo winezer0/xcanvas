@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/winezer0/xutils v0.0.2
+	github.com/winezer0/xutils v0.0.9-0.20260203103817-4260e0ce9ce1
 	gopkg.in/yaml.v3 v3.0.1
 )
 

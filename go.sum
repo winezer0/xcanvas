@@ -22,6 +22,12 @@ github.com/winezer0/xutils v0.0.1 h1:K+TqQuBWQrxRehG1iD7g0Gn0nnDROrO+laXE2tN12hc
 github.com/winezer0/xutils v0.0.1/go.mod h1:XBeNGB3ShyH3mAIZ0qXZbT/LAZc78snt/O1XMO51oro=
 github.com/winezer0/xutils v0.0.2 h1:AvBuek6BLuGElYSI99iki6qD21QNkFH+hQ7XHlAql8M=
 github.com/winezer0/xutils v0.0.2/go.mod h1:XBeNGB3ShyH3mAIZ0qXZbT/LAZc78snt/O1XMO51oro=
+github.com/winezer0/xutils v0.0.8-0.20260203041715-abaca3aea721 h1:pCmqzEH8AmKl9YyLcXi/SeYO0Am0NVL/jZyr9M4u1Qk=
+github.com/winezer0/xutils v0.0.8-0.20260203041715-abaca3aea721/go.mod h1:XBeNGB3ShyH3mAIZ0qXZbT/LAZc78snt/O1XMO51oro=
+github.com/winezer0/xutils v0.0.8 h1:qk/rQJ6pCsao3oiO9qjGUUrk419NvneXQiZEIVhh1g8=
+github.com/winezer0/xutils v0.0.8/go.mod h1:XBeNGB3ShyH3mAIZ0qXZbT/LAZc78snt/O1XMO51oro=
+github.com/winezer0/xutils v0.0.9-0.20260203103817-4260e0ce9ce1 h1:xeinhArW0E/Twbx3ruJy1xFKaeUXifZ3LquzvAtLjNk=
+github.com/winezer0/xutils v0.0.9-0.20260203103817-4260e0ce9ce1/go.mod h1:XBeNGB3ShyH3mAIZ0qXZbT/LAZc78snt/O1XMO51oro=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
