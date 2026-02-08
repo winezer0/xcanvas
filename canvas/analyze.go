@@ -13,7 +13,7 @@ import (
 // Analyze performs a full analysis and returns a CanvasReport.
 func Analyze(path string, rulesDir string) (*camodels.CanvasReport, error) {
 	// 初始化框架识别规则引擎
-	canvasEngine, initErr := frameengine.InitCanvasEngine(rulesDir)
+	canvasEngine, initErr := frameengine.NewCanvasEngine(rulesDir)
 	if initErr != nil {
 		return nil, fmt.Errorf("init canvas engine rules error: %v", initErr)
 	}

@@ -15,15 +15,15 @@ import (
 // Options defines the command-line parameters for CodeCanvas.
 type Options struct {
 	// Analysis parameters
-	ProjectPath string `short:"p" long:"projectpath" description:"ProjectPath to the codebase to analyze" required:"true"`
-	RulesDir    string `short:"r" long:"rules" description:"Directory containing detection RulesDirDir" default:"./rules"`
-	Output      string `short:"o" long:"output" description:"Write JSON to path or URL"`
+	ProjectPath string `short:"p" long:"path" description:"path to the codebase to analyze"`
+	RulesDir    string `short:"r" long:"rules" description:"detection rules dir path" default:""`
+	Output      string `short:"o" long:"output" description:"write json to file"`
 
 	// 日志参数（中文描述）
-	LogFile       string `long:"lf" description:"Log file path (if empty, no file will be written)"`
-	LogLevel      string `long:"ll" description:"log level (debug/info/warn/error)" default:"info"`
-	ConsoleFormat string `long:"cf" description:"console log format (TLCM OR off|null）" default:"CM"`
-	Version       bool   `short:"v" long:"version" description:"show version"`
+	LogFile    string `long:"lf" description:"log file path (if empty, no file will be written)"`
+	LogLevel   string `long:"ll" description:"log level (debug/info/warn/error)" default:"info"`
+	LogConsole string `long:"lc" description:"log format for console(TLCM OR off|null）" default:"LM"`
+	Version    bool   `short:"v" long:"version" description:"show version"`
 }
 
 const (
@@ -83,7 +83,7 @@ func InitOptionsArgs(minimumParams int) (*Options, *flags.Parser) {
 	}
 
 	// 初始化日志器
-	logCfg := logging.NewLogConfig(opts.LogLevel, opts.LogFile, opts.ConsoleFormat)
+	logCfg := logging.NewLogConfig(opts.LogLevel, opts.LogFile, opts.LogConsole)
 	if err := logging.InitLogger(logCfg); err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
 		os.Exit(1)

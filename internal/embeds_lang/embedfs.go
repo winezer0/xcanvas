@@ -1,5 +1,5 @@
 // Package lcembeds provides embedded rules for language classification.
-package langembeds
+package embeds_lang
 
 import (
 	"embed"

@@ -6,8 +6,8 @@ import (
 	"io/fs"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/frameembeds"
-	"github.com/winezer0/xcanvas/internal/langembeds"
+	"github.com/winezer0/xcanvas/internal/embeds_frame"
+	"github.com/winezer0/xcanvas/internal/embeds_lang"
 	"github.com/winezer0/xcanvas/internal/model"
 
 	"gopkg.in/yaml.v3"
@@ -19,14 +19,14 @@ func EmbeddedFrameRules() []*model.Framework {
 	var allRules []*model.Framework
 
 	// Read all files from the embedded filesystem
-	files, err := fs.Glob(frameembeds.FrameEmbedFS, "*.yml")
+	files, err := fs.Glob(embeds_frame.FrameEmbedFS, "*.yml")
 	if err != nil {
 		// Should not happen in a valid build
 		return []*model.Framework{}
 	}
 
 	for _, filename := range files {
-		fileContent, err := frameembeds.FrameEmbedFS.ReadFile(filename)
+		fileContent, err := embeds_frame.FrameEmbedFS.ReadFile(filename)
 		if err != nil {
 			continue
 		}
@@ -72,13 +72,13 @@ func EmbeddedFrameRules() []*model.Framework {
 func EmbeddedLangRules() map[string]model.Language {
 	rules := make(map[string]model.Language)
 
-	files, err := fs.Glob(langembeds.LanguageEmbedFS, "*.yml")
+	files, err := fs.Glob(embeds_lang.LanguageEmbedFS, "*.yml")
 	if err != nil {
 		return rules // 返回空 map
 	}
 
 	for _, filename := range files {
-		content, err := langembeds.LanguageEmbedFS.ReadFile(filename)
+		content, err := embeds_lang.LanguageEmbedFS.ReadFile(filename)
 		if err != nil {
 			continue // 跳过无法读取的文件
 		}

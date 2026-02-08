@@ -35,7 +35,7 @@ func TestNewRuleEngine(t *testing.T) {
 	}
 
 	// Create a new rule engine with the test rules
-	ruleEngine, err := InitCanvasEngine(tempDir)
+	ruleEngine, err := NewCanvasEngine(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestDetectFrameworks(t *testing.T) {
 	}
 
 	// Create a new rule engine with embedded rules only (empty rules directory)
-	ruleEngine, err := InitCanvasEngine("")
+	ruleEngine, err := NewCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestDetectComponents(t *testing.T) {
 	}
 
 	// Create a new rule engine with embedded rules only (empty rules directory)
-	ruleEngine, err := InitCanvasEngine("")
+	ruleEngine, err := NewCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestEdgeCases(t *testing.T) {
 	defer os.RemoveAll(emptyDir)
 
 	// Create a rule engine with empty rules directory
-	ruleEngine, err := InitCanvasEngine(emptyDir)
+	ruleEngine, err := NewCanvasEngine(emptyDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine with empty directory: %v", err)
 	}
@@ -282,7 +282,7 @@ func TestDetectVersion(t *testing.T) {
 	}
 
 	// Create a rule engine with the custom rules
-	ruleEngine, err := InitCanvasEngine(tempDir)
+	ruleEngine, err := NewCanvasEngine(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}
@@ -319,7 +319,7 @@ func TestDetectVersion(t *testing.T) {
 // TestEmbeddedRulesLoad tests that embedded rules are correctly loaded
 func TestEmbeddedRulesLoad(t *testing.T) {
 	// Create a new rule engine without any custom rules (should use embedded only)
-	ruleEngine, err := InitCanvasEngine("")
+	ruleEngine, err := NewCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to create rule engine: %v", err)
 	}

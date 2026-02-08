@@ -1,5 +1,5 @@
 // Package embeds provides embedded rules for framework and component detection.
-package frameembeds
+package embeds_frame
 
 import (
 	"embed"

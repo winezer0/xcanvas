@@ -1,4 +1,4 @@
-package langembeds
+package embeds_lang
 
 import (
 	"io"

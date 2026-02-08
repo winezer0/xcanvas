@@ -3,6 +3,7 @@ package frameengine
 
 import (
 	"fmt"
+	"github.com/winezer0/xutils/logging"
 	"io"
 	"os"
 	"sort"
@@ -38,10 +39,10 @@ type CanvasEngine struct {
 	componentRules map[string]*model.Framework
 }
 
-// InitCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
+// NewCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
 // 如果提供了规则目录（rulesDir），则会从该目录加载规则，并将其与嵌入式规则合并，
 // 其中用户定义的规则将覆盖具有相同名称的嵌入式规则。
-func InitCanvasEngine(rulesDir string) (*CanvasEngine, error) {
+func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	engine := &CanvasEngine{
 		rules:          []*model.Framework{},
 		frameworkRules: make(map[string]*model.Framework),
@@ -55,7 +56,8 @@ func InitCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	if rulesDir != "" {
 		err := engine.loadRulesFromDirectory(rulesDir)
 		if err != nil {
-			return nil, err
+			logging.Errorf("load rules from rule dir (%s) occur error: %v", rulesDir, err)
+			return engine, err
 		}
 	}
 

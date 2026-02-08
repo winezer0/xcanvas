@@ -1,4 +1,4 @@
-package frameembeds
+package embeds_frame
 
 import (
 	"io"

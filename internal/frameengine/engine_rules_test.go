@@ -13,7 +13,7 @@ import (
 // TestEmbeddedRules verifies that every embedded rule can be triggered by a minimal test case.
 func TestEmbeddedRules(t *testing.T) {
 	// Initialize engine with embedded rules
-	e, err := InitCanvasEngine("")
+	e, err := NewCanvasEngine("")
 	if err != nil {
 		t.Fatalf("Failed to initialize engine: %v", err)
 	}
