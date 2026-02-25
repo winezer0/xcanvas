@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // IndexMatcher 提供基于索引的文件查找功能
 type IndexMatcher struct {
-	Index *model.FileIndex
+	Index *camodels.FileIndex
 }
 
 // NewIndexMatcher 创建一个新的索引匹配器
-func NewIndexMatcher(index *model.FileIndex) *IndexMatcher {
+func NewIndexMatcher(index *camodels.FileIndex) *IndexMatcher {
 	return &IndexMatcher{Index: index}
 }
 

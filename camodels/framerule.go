@@ -1,4 +1,4 @@
-package model
+package camodels
 
 // FrameRule 匹配组件/框架的信息 判断组件或框架是否存在
 type FrameRule struct {

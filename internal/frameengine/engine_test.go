@@ -5,60 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
-
-// TestNewRuleEngine tests the creation of a new rule engine with rules loaded from a directory.
-func TestNewRuleEngine(t *testing.T) {
-	// Create a temporary directory with test rules
-	tempDir, err := os.MkdirTemp("", "test_rules")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Write a test rule that will override the embedded Spring Boot rule
-	yamlContent := []byte(`- name: Spring Boot
-  type: framework
-  language: Java
-  category: backend
-  levels:
-    L1:
-      paths:
-      - pom.xml
-      contains:
-      - spring-boot-starter
-`)
-
-	if err := os.WriteFile(filepath.Join(tempDir, "java.yml"), yamlContent, 0644); err != nil {
-		t.Fatalf("Failed to write test rule file: %v", err)
-	}
-
-	// Create a new rule engine with the test rules
-	ruleEngine, err := NewCanvasEngine(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to create rule engine: %v", err)
-	}
-
-	// Check that the rule engine has at least the embedded rules plus our custom rule
-	frameworks := ruleEngine.GetSupportedFrameworks()
-	if len(frameworks) < 5 { // We have at least 5 embedded frameworks
-		t.Errorf("Expected at least 5 frameworks (embedded + custom), got %d", len(frameworks))
-	}
-
-	// Check that Spring Boot rule is present (it should be either the embedded one or our custom one)
-	springBootFound := false
-	for _, fw := range frameworks {
-		if fw.Name == "Spring Boot" && fw.Language == "Java" {
-			springBootFound = true
-			break
-		}
-	}
-
-	if !springBootFound {
-		t.Errorf("Expected Spring Boot framework to be present")
-	}
-}
 
 // TestDetectFrameworks tests the framework detection functionality.
 func TestDetectFrameworks(t *testing.T) {
@@ -111,7 +59,7 @@ func TestDetectFrameworks(t *testing.T) {
 			if fw.Language != "JavaScript" {
 				t.Errorf("Expected Express framework language 'JavaScript', got '%s'", fw.Language)
 			}
-			if fw.Category != model.CategoryBackend {
+			if fw.Category != camodels.CategoryBackend {
 				t.Errorf("Expected Express framework category 'backend', got '%s'", fw.Category)
 			}
 			break
@@ -174,7 +122,7 @@ func TestDetectComponents(t *testing.T) {
 			if comp.Language != "JavaScript" {
 				t.Errorf("Expected lodash component language 'JavaScript', got '%s'", comp.Language)
 			}
-			if comp.Category != model.CategoryFrontend {
+			if comp.Category != camodels.CategoryFrontend {
 				t.Errorf("Expected lodash component category 'frontend', got '%s'", comp.Category)
 			}
 			break
@@ -183,52 +131,6 @@ func TestDetectComponents(t *testing.T) {
 
 	if !lodashFound {
 		t.Errorf("Expected lodash component to be detected")
-	}
-}
-
-// TestEdgeCases tests edge cases in the rule engine functionality.
-func TestEdgeCases(t *testing.T) {
-	// Test with empty rules directory (should still load embedded rules)
-	emptyDir, err := os.MkdirTemp("", "test_empty_rules")
-	if err != nil {
-		t.Fatalf("Failed to create empty temp directory: %v", err)
-	}
-	defer os.RemoveAll(emptyDir)
-
-	// Create a rule engine with empty rules directory
-	ruleEngine, err := NewCanvasEngine(emptyDir)
-	if err != nil {
-		t.Fatalf("Failed to create rule engine with empty directory: %v", err)
-	}
-
-	// Check that embedded frameworks are still supported
-	if frameworks := ruleEngine.GetSupportedFrameworks(); len(frameworks) == 0 {
-		t.Errorf("Expected at least some embedded frameworks, got 0")
-	}
-
-	// Check that embedded components are still supported
-	if components := ruleEngine.GetSupportedComponents(); len(components) == 0 {
-		t.Errorf("Expected at least some embedded components, got 0")
-	}
-
-	// Test detection with no matching files
-	// Build file index for current directory
-	index, err := buildTestIndex(".")
-	if err != nil {
-		t.Fatalf("Failed to build file index: %v", err)
-	}
-
-	result, err := ruleEngine.DetectFrameworks(index, []string{"Java"})
-	if err != nil {
-		t.Fatalf("Failed to detect frameworks with no matching files: %v", err)
-	}
-
-	if len(result.Frameworks) != 0 {
-		t.Errorf("Expected 0 frameworks detected, got %d", len(result.Frameworks))
-	}
-
-	if len(result.Components) != 0 {
-		t.Errorf("Expected 0 components detected, got %d", len(result.Components))
 	}
 }
 
@@ -316,60 +218,9 @@ func TestDetectVersion(t *testing.T) {
 	}
 }
 
-// TestEmbeddedRulesLoad tests that embedded rules are correctly loaded
-func TestEmbeddedRulesLoad(t *testing.T) {
-	// Create a new rule engine without any custom rules (should use embedded only)
-	ruleEngine, err := NewCanvasEngine("")
-	if err != nil {
-		t.Fatalf("Failed to create rule engine: %v", err)
-	}
-
-	// Get all supported frameworks
-	frameworks := ruleEngine.GetSupportedFrameworks()
-	if len(frameworks) == 0 {
-		t.Error("Expected at least some embedded frameworks, got none")
-	}
-
-	// Check specific frameworks
-	expectedFrameworks := []string{"Express", "React", "Vue.js", "Angular", "Spring Boot", "Django", "Gin", "Echo"}
-	for _, expected := range expectedFrameworks {
-		found := false
-		for _, fw := range frameworks {
-			if fw.Name == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("Expected framework '%s' to be detected in embedded rules", expected)
-		}
-	}
-
-	// Get all supported components
-	components := ruleEngine.GetSupportedComponents()
-	if len(components) == 0 {
-		t.Error("Expected at least some embedded components, got none")
-	}
-
-	// Check specific components
-	expectedComponents := []string{"lodash", "axios", "requests"}
-	for _, expected := range expectedComponents {
-		found := false
-		for _, comp := range components {
-			if comp.Name == expected {
-				found = true
-				break
-			}
-		}
-		if !found {
-			t.Errorf("Expected component '%s' to be detected in embedded rules", expected)
-		}
-	}
-}
-
 // buildTestIndex creates a file index for testing
-func buildTestIndex(rootDir string) (*model.FileIndex, error) {
-	index := model.NewFileIndex(rootDir)
+func buildTestIndex(rootDir string) (*camodels.FileIndex, error) {
+	index := camodels.NewFileIndex(rootDir)
 	err := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err

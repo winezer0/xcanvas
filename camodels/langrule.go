@@ -1,4 +1,4 @@
-package model
+package camodels
 
 // DynamicCategory 动态分类规则
 // - Category: 分类结果

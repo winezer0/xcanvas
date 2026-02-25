@@ -1,12 +1,13 @@
 package frameengine
 
 import (
-	"github.com/winezer0/xutils/utils"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
+	"github.com/winezer0/xutils/utils"
+
 	"github.com/winezer0/xutils/logging"
 )
 
@@ -52,7 +53,7 @@ func extractVersion(content []byte, patterns []string) string {
 // matchFrame 检查 rules 中是否有任意一条规则被满足。
 // 规则满足条件 = 所有 Paths 存在 AND 所有 FileContents 条件满足。
 // 返回 true 表示至少有一条规则匹配成功。
-func matchFrame(matcher *IndexMatcher, rules []model.FrameRule, fileContentCache map[string][]byte) bool {
+func matchFrame(matcher *IndexMatcher, rules []camodels.FrameRule, fileContentCache map[string][]byte) bool {
 	for _, rule := range rules {
 		if len(rule.Paths) == 0 && len(rule.FileContents) == 0 {
 			logging.Errorf("match rules not has any match content: %s", utils.ToJSON(rule))
@@ -118,7 +119,7 @@ func matchFrame(matcher *IndexMatcher, rules []model.FrameRule, fileContentCache
 	return false
 }
 
-func extractorVersion(matcher *IndexMatcher, versionExtractors []model.VersionExtractor, fileContentCache map[string][]byte) string {
+func extractorVersion(matcher *IndexMatcher, versionExtractors []camodels.VersionExtractor, fileContentCache map[string][]byte) string {
 	version := ""
 	// 使用框架/组件级版本提取规则
 	for _, versionExtractor := range versionExtractors {

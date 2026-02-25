@@ -3,13 +3,10 @@ package frameengine
 
 import (
 	"fmt"
-	"github.com/winezer0/xutils/logging"
-	"io"
-	"os"
-	"sort"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
+	"github.com/winezer0/xutils/logging"
 )
 
 // formatVersion 格式化版本号，去除常见前缀和多余字符
@@ -34,9 +31,9 @@ func formatVersion(version string) string {
 
 // CanvasEngine 实现框架和组件检测功能。
 type CanvasEngine struct {
-	rules          []*model.Framework
-	frameworkRules map[string]*model.Framework
-	componentRules map[string]*model.Framework
+	rules          []*camodels.Framework
+	frameworkRules map[string]*camodels.Framework
+	componentRules map[string]*camodels.Framework
 }
 
 // NewCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
@@ -44,9 +41,9 @@ type CanvasEngine struct {
 // 其中用户定义的规则将覆盖具有相同名称的嵌入式规则。
 func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	engine := &CanvasEngine{
-		rules:          []*model.Framework{},
-		frameworkRules: make(map[string]*model.Framework),
-		componentRules: make(map[string]*model.Framework),
+		rules:          []*camodels.Framework{},
+		frameworkRules: make(map[string]*camodels.Framework),
+		componentRules: make(map[string]*camodels.Framework),
 	}
 
 	// 首先加载嵌入式规则
@@ -66,10 +63,10 @@ func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 
 // DetectFrameworks 根据加载的规则检测给定目录中的框架和组件。
 // 使用文件索引进行加速。
-func (e *CanvasEngine) DetectFrameworks(index *model.FileIndex, languages []string) (*model.DetectionInfo, error) {
-	result := &model.DetectionInfo{
-		Frameworks: []model.DetectedItem{},
-		Components: []model.DetectedItem{},
+func (e *CanvasEngine) DetectFrameworks(index *camodels.FileIndex, languages []string) (*camodels.DetectionInfo, error) {
+	result := &camodels.DetectionInfo{
+		Frameworks: []camodels.DetectedItem{},
+		Components: []camodels.DetectedItem{},
 	}
 
 	// 创建索引匹配器
@@ -88,7 +85,7 @@ func (e *CanvasEngine) DetectFrameworks(index *model.FileIndex, languages []stri
 			// 提取版本信息
 			version := extractorVersion(matcher, framework.Versions, fileContentCache)
 			// 规则匹配成功，创建检测结果
-			item := model.DetectedItem{
+			item := camodels.DetectedItem{
 				Name:     framework.Name,
 				Type:     framework.Type,
 				Language: framework.Language,
@@ -98,9 +95,9 @@ func (e *CanvasEngine) DetectFrameworks(index *model.FileIndex, languages []stri
 			}
 			// 根据规则类型添加到结果
 			switch framework.Type {
-			case model.RuleTypeFramework:
+			case camodels.RuleTypeFramework:
 				result.Frameworks = append(result.Frameworks, item)
-			case model.RuleTypeComponent:
+			case camodels.RuleTypeComponent:
 				result.Components = append(result.Components, item)
 			}
 		}
@@ -109,40 +106,9 @@ func (e *CanvasEngine) DetectFrameworks(index *model.FileIndex, languages []stri
 	return result, nil
 }
 
-// GetFileContentWithCache 读取文件内容，带缓存和大文件截断（最大 5MB，只读前 1MB）
-// cache 是外部传入的 map[string][]byte，用于跨调用共享缓存
-func GetFileContentWithCache(path string, cache map[string][]byte) ([]byte, error) {
-	if content, ok := cache[path]; ok {
-		return content, nil
-	}
-
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	stat, err := f.Stat()
-	if err == nil && stat.Size() > 5*1024*1024 { // >5MB
-		content, err := io.ReadAll(io.LimitReader(f, 1*1024*1024)) // 读前1MB
-		if err != nil {
-			return nil, err
-		}
-		cache[path] = content
-		return content, nil
-	}
-
-	content, err := io.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	cache[path] = content
-	return content, nil
-}
-
 // filterRulesByLanguages 过滤规则，只包含与检测到的语言匹配的规则。
-func (e *CanvasEngine) filterRulesByLanguages(languages []string) []*model.Framework {
-	var filtered []*model.Framework
+func (e *CanvasEngine) filterRulesByLanguages(languages []string) []*camodels.Framework {
+	var filtered []*camodels.Framework
 
 	for _, rule := range e.rules {
 		// 检查规则的语言是否在检测到的语言中
@@ -155,60 +121,4 @@ func (e *CanvasEngine) filterRulesByLanguages(languages []string) []*model.Frame
 	}
 
 	return filtered
-}
-
-// GetSupportedFrameworks 从规则中提取有关所有可检测框架的元数据。
-func (e *CanvasEngine) GetSupportedFrameworks() []model.FrameworkMetadata {
-	var frameworks []model.FrameworkMetadata
-
-	for _, framework := range e.frameworkRules {
-		// 提取规则信息
-		levels := make(map[string]string)
-		for i, rule := range framework.Rules {
-			if len(rule.Paths) > 0 {
-				levels[fmt.Sprintf("FrameRule%d", i+1)] = rule.Paths[0] // 使用第一个路径作为代表
-			}
-		}
-
-		frameworkMeta := model.FrameworkMetadata{
-			Name:     framework.Name,
-			Language: framework.Language,
-			Levels:   levels,
-		}
-
-		frameworks = append(frameworks, frameworkMeta)
-	}
-
-	// 按名称对框架进行排序
-	sort.Slice(frameworks, func(i, j int) bool {
-		return frameworks[i].Name < frameworks[j].Name
-	})
-
-	return frameworks
-}
-
-// GetSupportedComponents 从规则中提取有关所有可检测 组件 的元数据
-func (e *CanvasEngine) GetSupportedComponents() []model.ComponentMetadata {
-	var components []model.ComponentMetadata
-	for _, component := range e.componentRules {
-		// 提取规则信息
-		levels := make(map[string]string)
-		for i, rule := range component.Rules {
-			if len(rule.Paths) > 0 {
-				levels[fmt.Sprintf("FrameRule%d", i+1)] = rule.Paths[0] // 使用第一个路径作为代表
-			}
-		}
-		componentMeta := model.ComponentMetadata{
-			Name:     component.Name,
-			Language: component.Language,
-			Levels:   levels,
-		}
-
-		components = append(components, componentMeta)
-	}
-	// Sort components by name
-	sort.Slice(components, func(i, j int) bool {
-		return components[i].Name < components[j].Name
-	})
-	return components
 }

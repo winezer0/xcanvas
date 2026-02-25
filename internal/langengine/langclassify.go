@@ -3,8 +3,8 @@ package langengine
 import (
 	"strings"
 
+	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/embeds"
-	"github.com/winezer0/xcanvas/internal/model"
 	"github.com/winezer0/xutils/logging"
 )
 
@@ -12,7 +12,7 @@ import (
 // - langMap: 存储所有统一语言模型的映射，键为小写的语言名称
 
 type LangClassify struct {
-	langMap map[string]model.Language
+	langMap map[string]camodels.Language
 }
 
 // LanguageRules 加载embeds的默认规则
@@ -37,7 +37,7 @@ func NewLangClassifier() *LangClassify {
 // - desktop: 桌面语言列表
 // - other: 其他语言列表
 // - all: 所有语言列表（去重）
-func (c *LangClassify) DetectCategories(root string, langs []model.LangInfo) (frontend, backend, desktop, other, all, expand []string) {
+func (c *LangClassify) DetectCategories(root string, langs []camodels.LangInfo) (frontend, backend, desktop, other, all, expand []string) {
 	frontedSet := make(map[string]bool)
 	backendSet := make(map[string]bool)
 	desktopSet := make(map[string]bool)
@@ -60,11 +60,11 @@ func (c *LangClassify) DetectCategories(root string, langs []model.LangInfo) (fr
 			for _, cat := range cats {
 				// 根据分类结果添加到相应的集合
 				switch cat {
-				case model.CategoryFrontend:
+				case camodels.CategoryFrontend:
 					frontedSet[langInfo.Name] = true
-				case model.CategoryBackend:
+				case camodels.CategoryBackend:
 					backendSet[langInfo.Name] = true
-				case model.CategoryDesktop:
+				case camodels.CategoryDesktop:
 					desktopSet[langInfo.Name] = true
 				default:
 					otherSet[langInfo.Name] = true

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // TestEmbeddedRules verifies that every embedded rule can be triggered by a minimal test case.
@@ -52,7 +52,7 @@ func TestEmbeddedRules(t *testing.T) {
 
 			// Verify detection
 			found := false
-			var items []model.DetectedItem
+			var items []camodels.DetectedItem
 			if framework.Type == "framework" {
 				items = result.Frameworks
 			} else {
@@ -75,7 +75,7 @@ func TestEmbeddedRules(t *testing.T) {
 
 // setupTestEnv creates files in the temp dir to satisfy the rule.
 // Returns true if setup was successful, false if the rule is too complex to auto-mock.
-func setupTestEnv(t *testing.T, dir string, framework *model.Framework) bool {
+func setupTestEnv(t *testing.T, dir string, framework *camodels.Framework) bool {
 	// 如果没有规则，返回 false
 	if len(framework.Rules) == 0 {
 		return false

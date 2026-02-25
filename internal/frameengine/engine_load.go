@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/embeds"
-	"github.com/winezer0/xcanvas/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,7 +22,7 @@ func (e *CanvasEngine) loadEmbeddedRules() {
 }
 
 // addRule 向引擎添加单个规则，替换具有相同名称的任何现有规则。
-func (e *CanvasEngine) addRule(rule *model.Framework) {
+func (e *CanvasEngine) addRule(rule *camodels.Framework) {
 	// 检查规则是否已存在
 	existingIndex := -1
 	for i, r := range e.rules {
@@ -42,9 +42,9 @@ func (e *CanvasEngine) addRule(rule *model.Framework) {
 
 	// 更新规则映射
 	switch rule.Type {
-	case model.RuleTypeFramework:
+	case camodels.RuleTypeFramework:
 		e.frameworkRules[rule.Name] = rule
-	case model.RuleTypeComponent:
+	case camodels.RuleTypeComponent:
 		e.componentRules[rule.Name] = rule
 	}
 }
@@ -73,7 +73,7 @@ func (e *CanvasEngine) loadRulesFromDirectory(rulesDir string) error {
 }
 
 // loadRulesFromFile 从单个 YAML 文件加载规则，支持单文档数组格式和多文档格式。
-func (e *CanvasEngine) loadRulesFromFile(filePath string) ([]*model.Framework, error) {
+func (e *CanvasEngine) loadRulesFromFile(filePath string) ([]*camodels.Framework, error) {
 	// 读取 YAML 文件
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -81,7 +81,7 @@ func (e *CanvasEngine) loadRulesFromFile(filePath string) ([]*model.Framework, e
 	}
 
 	// 首先尝试解析为单文档数组格式
-	var rulesArray []*model.Framework
+	var rulesArray []*camodels.Framework
 	if err := yaml.Unmarshal(data, &rulesArray); err == nil {
 		// 成功解析为数组格式
 		return rulesArray, nil
@@ -91,11 +91,11 @@ func (e *CanvasEngine) loadRulesFromFile(filePath string) ([]*model.Framework, e
 	yamlReader := strings.NewReader(string(data))
 	decoder := yaml.NewDecoder(yamlReader)
 
-	var rules []*model.Framework
+	var rules []*camodels.Framework
 
 	// 解码 YAML 文件中的每个文档
 	for {
-		var rule model.Framework
+		var rule camodels.Framework
 		err := decoder.Decode(&rule)
 		if err != nil {
 			if err == io.EOF {

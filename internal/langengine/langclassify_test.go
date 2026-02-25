@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 func TestDetectCategories(t *testing.T) {
@@ -20,14 +20,14 @@ func TestDetectCategories(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		languages    []model.LangInfo
+		languages    []camodels.LangInfo
 		packageJson  map[string]any
 		wantFrontend []string
 		wantBackend  []string
 	}{
 		{
 			name: "Basic Backend",
-			languages: []model.LangInfo{
+			languages: []camodels.LangInfo{
 				{Name: "Go"},
 				{Name: "Java"},
 			},
@@ -35,7 +35,7 @@ func TestDetectCategories(t *testing.T) {
 		},
 		{
 			name: "Basic Frontend",
-			languages: []model.LangInfo{
+			languages: []camodels.LangInfo{
 				{Name: "HTML"},
 				{Name: "CSS"},
 			},
@@ -43,7 +43,7 @@ func TestDetectCategories(t *testing.T) {
 		},
 		{
 			name: "JS with React (Frontend)",
-			languages: []model.LangInfo{
+			languages: []camodels.LangInfo{
 				{Name: "JavaScript"},
 			},
 			packageJson: map[string]any{
@@ -55,7 +55,7 @@ func TestDetectCategories(t *testing.T) {
 		},
 		{
 			name: "Mixed Project",
-			languages: []model.LangInfo{
+			languages: []camodels.LangInfo{
 				{Name: "Go"},
 				{Name: "TypeScript"},
 			},

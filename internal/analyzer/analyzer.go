@@ -2,17 +2,17 @@
 package analyzer
 
 import (
-	"github.com/winezer0/xutils/progress"
-	"github.com/winezer0/xutils/utils"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 
+	"github.com/winezer0/xutils/progress"
+	"github.com/winezer0/xutils/utils"
+
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/langengine"
-	"github.com/winezer0/xcanvas/internal/model"
 	"github.com/winezer0/xutils/logging"
 )
 
@@ -27,7 +27,7 @@ func NewCodeAnalyzer() *CodeAnalyzer {
 // AnalysisTask 定义一个分析任务
 type AnalysisTask struct {
 	Path    string
-	LangDef *model.Language
+	LangDef *camodels.Language
 }
 
 // AnalysisResult 定义分析结果
@@ -38,8 +38,8 @@ type AnalysisResult struct {
 }
 
 var (
-	extToLanguage  = make(map[string]*model.Language)
-	fileToLanguage = make(map[string]*model.Language)
+	extToLanguage  = make(map[string]*camodels.Language)
+	fileToLanguage = make(map[string]*camodels.Language)
 )
 
 // init 初始化语言映射
@@ -56,14 +56,14 @@ func init() {
 }
 
 // AnalyzeCodeProfile 分析给定路径下的代码库并返回代码画像和文件索引。
-func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodeProfile, *model.FileIndex, error) {
+func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodeProfile, *camodels.FileIndex, error) {
 	// 获取绝对路径
 	absPath, err := filepath.Abs(projectPath)
 	if err != nil {
 		return nil, nil, err
 	}
 	// 初始化文件索引
-	fileIndex := model.NewFileIndex(absPath)
+	fileIndex := camodels.NewFileIndex(absPath)
 
 	// 1. 先收集所有任务
 	var taskList []AnalysisTask
@@ -109,7 +109,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 	}
 
 	// 2. 初始化进度条
-	bar := progress.NewProcessBarByTotalTask(int64(len(taskList)), "Analyzing Code")
+	bar := progress.NewProcessBar(int64(len(taskList)), "Analyzing Code")
 
 	// 准备并发处理
 	workers := autoWorkers()
@@ -136,7 +136,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 	}
 
 	// 启动结果收集协程
-	stats := make(map[string]*model.LangSummary)
+	stats := make(map[string]*camodels.LangSummary)
 	var errorFiles int
 	done := make(chan struct{})
 	go func() {
@@ -147,7 +147,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 			}
 			summary, ok := stats[res.LangName]
 			if !ok {
-				summary = &model.LangSummary{Name: res.LangName}
+				summary = &camodels.LangSummary{Name: res.LangName}
 				stats[res.LangName] = summary
 			}
 			summary.Count++
@@ -184,7 +184,7 @@ func autoWorkers() int {
 }
 
 // convertToCodeProfile converts statistics to CodeCanvas CodeProfile.
-func convertToCodeProfile(absPath string, stats map[string]*model.LangSummary, errorFiles int) *camodels.CodeProfile {
+func convertToCodeProfile(absPath string, stats map[string]*camodels.LangSummary, errorFiles int) *camodels.CodeProfile {
 
 	profile := &camodels.CodeProfile{
 		Path:              absPath,
@@ -193,17 +193,17 @@ func convertToCodeProfile(absPath string, stats map[string]*model.LangSummary, e
 		ErrorFiles:        errorFiles,
 		FrontendLanguages: []string{},
 		BackendLanguages:  []string{},
-		LanguageInfos:     []model.LangInfo{},
+		LanguageInfos:     []camodels.LangInfo{},
 	}
 
 	// 将统计表转换为切片
-	var summaries []model.LangSummary
+	var summaries []camodels.LangSummary
 	for _, summary := range stats {
 		summaries = append(summaries, *summary)
 	}
 
 	for _, stat := range summaries {
-		langInfo := model.LangInfo{
+		langInfo := camodels.LangInfo{
 			Name:         stat.Name,
 			Files:        int(stat.Count),
 			CodeLines:    int(stat.Code),

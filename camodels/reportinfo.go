@@ -4,37 +4,35 @@ import (
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/winezer0/xcanvas/internal/model"
 )
 
 // CodeProfile 代码轮廓
 type CodeProfile struct {
-	Path              string           `json:"path"`
-	TotalFiles        int              `json:"totalFiles"`
-	TotalLines        int              `json:"totalLines"`
-	ErrorFiles        int              `json:"errorFiles"`        // Number of files that failed to process
-	LanguageInfos     []model.LangInfo `json:"languageInfos"`     // 所有检测到的语言的完整列表
-	FrontendLanguages []string         `json:"frontendLanguages"` // 例如: ["TypeScript", "JavaScript"]
-	BackendLanguages  []string         `json:"backendLanguages"`  // 例如: ["Java", "Go"]
-	DesktopLanguages  []string         `json:"desktopLanguages"`  // 例如: ["C#", "C++"]
-	OtherLanguages    []string         `json:"otherLanguages"`    // 例如: ["JSON", "YAML"]
-	Languages         []string         `json:"languages"`
-	Expands           []string         `json:"expands"`
+	Path              string     `json:"path"`
+	TotalFiles        int        `json:"totalFiles"`
+	TotalLines        int        `json:"totalLines"`
+	ErrorFiles        int        `json:"errorFiles"`        // Number of files that failed to process
+	LanguageInfos     []LangInfo `json:"languageInfos"`     // 所有检测到的语言的完整列表
+	FrontendLanguages []string   `json:"frontendLanguages"` // 例如: ["TypeScript", "JavaScript"]
+	BackendLanguages  []string   `json:"backendLanguages"`  // 例如: ["Java", "Go"]
+	DesktopLanguages  []string   `json:"desktopLanguages"`  // 例如: ["C#", "C++"]
+	OtherLanguages    []string   `json:"otherLanguages"`    // 例如: ["JSON", "YAML"]
+	Languages         []string   `json:"languages"`
+	Expands           []string   `json:"expands"`
 }
 
 // CanvasReport 最终分析报告
 type CanvasReport struct {
-	CodeProfile CodeProfile         `json:"codeProfile"`
-	Detection   model.DetectionInfo `json:"detection"`
-	Timestamp   time.Time           `json:"timestamp"`
-	Version     string              `json:"version"`
+	CodeProfile CodeProfile   `json:"codeProfile"`
+	Detection   DetectionInfo `json:"detection"`
+	Timestamp   time.Time     `json:"timestamp"`
+	Version     string        `json:"version"`
 }
 
 // CanvasSimple 包含了 CodeCanvas 分析的完整结果
 type CanvasSimple struct {
 	// 语言信息列表
-	LanguageInfos []model.LangInfo `json:"languageInfos"`
+	LanguageInfos []LangInfo `json:"languageInfos"`
 	// 语言列表
 	Languages []string `json:"languages"`
 	// 前端语言列表
@@ -77,8 +75,8 @@ func (report *CanvasReport) ToSimpleReport() *CanvasSimple {
 	return result
 }
 
-func languageInfosToMap(languageInfos []model.LangInfo) map[string]model.LangInfo {
-	langStats := make(map[string]model.LangInfo)
+func languageInfosToMap(languageInfos []LangInfo) map[string]LangInfo {
+	langStats := make(map[string]LangInfo)
 	for _, l := range languageInfos {
 		langStats[l.Name] = l
 	}
@@ -86,7 +84,7 @@ func languageInfosToMap(languageInfos []model.LangInfo) map[string]model.LangInf
 }
 
 // getItemsWithVersions 提取去重后的 items (组件名或者框架名)及其版本，返回名称到版本的映射
-func getItemsWithVersions(items []model.DetectedItem) map[string]string {
+func getItemsWithVersions(items []DetectedItem) map[string]string {
 	result := make(map[string]string)
 
 	for _, item := range items {
@@ -106,14 +104,14 @@ func getItemsWithVersions(items []model.DetectedItem) map[string]string {
 }
 
 // getTopLanguages 根据代码行数和文件数对语言进行排序并返回前 N 个
-func getTopLanguages(candidates []string, stats map[string]model.LangInfo, exclude []string, limit int) []string {
+func getTopLanguages(candidates []string, stats map[string]LangInfo, exclude []string, limit int) []string {
 	// 过滤需要排除的语言
 	excludeMap := make(map[string]bool)
 	for _, e := range exclude {
 		excludeMap[strings.ToLower(e)] = true
 	}
 
-	var validLangs []model.LangInfo
+	var validLangs []LangInfo
 	for _, name := range candidates {
 		if excludeMap[strings.ToLower(name)] {
 			continue

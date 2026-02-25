@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 func TestAnalyzeCodeProfile(t *testing.T) {
@@ -132,7 +132,7 @@ func TestAllLanguagesCoverage(t *testing.T) {
 }
 
 // generateTestContent creates a simple content string for a language
-func generateTestContent(lang *model.Language) string {
+func generateTestContent(lang *camodels.Language) string {
 	content := ""
 
 	// Add a single line comment if supported

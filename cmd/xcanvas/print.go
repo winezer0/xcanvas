@@ -1,10 +1,10 @@
-package canvas
+package main
 
 import (
 	"fmt"
-	"github.com/winezer0/xcanvas/camodels"
-	"github.com/winezer0/xcanvas/internal/model"
 	"time"
+
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // PrintCanvasReport outputs the analysis report in text format.
@@ -76,16 +76,16 @@ func PrintCanvasReport(report *camodels.CanvasReport) {
 	fmt.Printf("Generated: %s\n", report.Timestamp.Format(time.RFC1123))
 }
 
-func printDetectedItems(title string, items []model.DetectedItem) {
+func printDetectedItems(title string, items []camodels.DetectedItem) {
 	fmt.Println(title + ":")
 
 	// Group by category
-	byCategory := make(map[string][]model.DetectedItem)
+	byCategory := make(map[string][]camodels.DetectedItem)
 	for _, item := range items {
 		byCategory[item.Category] = append(byCategory[item.Category], item)
 	}
 
-	categories := model.AllCategory
+	categories := camodels.AllCategory
 	for _, cat := range categories {
 		printCategoryItems(cat, byCategory[cat])
 	}
@@ -106,7 +106,7 @@ func printDetectedItems(title string, items []model.DetectedItem) {
 	fmt.Println()
 }
 
-func printCategoryItems(category string, items []model.DetectedItem) {
+func printCategoryItems(category string, items []camodels.DetectedItem) {
 	if len(items) > 0 {
 		fmt.Printf("  [%s]\n", category)
 		for _, item := range items {

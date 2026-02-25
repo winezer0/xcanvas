@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/winezer0/xcanvas/internal/model"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // ApplyDynamicHeuristics 应用动态分类规则对语言进行分类
@@ -16,7 +16,7 @@ import (
 // - deps: 项目依赖映射
 // 返回值:
 // - string: 分类结果（frontend/backend/desktop/other）
-func ApplyDynamicHeuristics(root string, lang model.Language, deps map[string]bool) []string {
+func ApplyDynamicHeuristics(root string, lang camodels.Language, deps map[string]bool) []string {
 	baseRes := []string{lang.Category}
 	if len(lang.Dynamic) == 0 {
 		return baseRes
