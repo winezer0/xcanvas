@@ -4,7 +4,7 @@ go 1.25.5
 
 require (
 	github.com/jessevdk/go-flags v1.6.1
-	github.com/winezer0/xutils v0.1.0
+	github.com/winezer0/xutils v0.1.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -13,10 +13,9 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
 	github.com/schollz/progressbar/v3 v3.19.0 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
-	go.uber.org/multierr v1.11.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.27.1 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
