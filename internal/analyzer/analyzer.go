@@ -2,6 +2,7 @@
 package analyzer
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +16,9 @@ import (
 	"github.com/winezer0/xcanvas/internal/langengine"
 	"github.com/winezer0/xutils/logging"
 )
+
+// contextCheckInterval controls how often ctx.Err() is polled during walk.
+const contextCheckInterval = 100
 
 // CodeAnalyzer 实现代码画像分析功能。
 type CodeAnalyzer struct{}
@@ -56,69 +60,136 @@ func init() {
 }
 
 // AnalyzeCodeProfile 分析给定路径下的代码库并返回代码画像和文件索引。
+// 使用默认 WalkOptions，不接受取消信号（向后兼容）。
 func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodeProfile, *camodels.FileIndex, error) {
-	// 获取绝对路径
+	profile, index, _, err := a.AnalyzeCodeProfileWithContext(
+		context.Background(), projectPath, DefaultWalkOptions(),
+	)
+	return profile, index, err
+}
+
+// AnalyzeCodeProfileWithContext 分析给定路径下的代码库，支持取消和资源限制。
+// 返回代码画像、文件索引、遍历诊断信息和可能的错误。
+func (a *CodeAnalyzer) AnalyzeCodeProfileWithContext(
+	ctx context.Context, projectPath string, opts WalkOptions,
+) (*camodels.CodeProfile, *camodels.FileIndex, *WalkDiagnostics, error) {
+	opts = opts.Normalize()
+
 	absPath, err := filepath.Abs(projectPath)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	// 初始化文件索引
+	if err := ctx.Err(); err != nil {
+		return nil, nil, nil, err
+	}
+
 	fileIndex := camodels.NewFileIndex(absPath)
-
-	// 1. 先收集所有任务
 	var taskList []AnalysisTask
+	var diag WalkDiagnostics
 
-	// 遍历目录并收集任务
-	err = filepath.WalkDir(absPath, func(path string, dirEntry os.DirEntry, err error) error {
-		if err != nil {
-			// 如果无法访问文件/目录，跳过
-			return nil
+	// Walk directory collecting analysis tasks with resource limits.
+	err = a.walkAndCollect(ctx, absPath, opts, fileIndex, &taskList, &diag)
+	if err != nil {
+		return nil, nil, &diag, err
+	}
+
+	// Process collected tasks concurrently.
+	stats, errorFiles := a.processTasks(taskList)
+
+	codeProfile := convertToCodeProfile(absPath, stats, errorFiles)
+	return codeProfile, fileIndex, &diag, nil
+}
+
+// walkAndCollect traverses the directory tree applying resource limits.
+func (a *CodeAnalyzer) walkAndCollect(
+	ctx context.Context,
+	absPath string,
+	opts WalkOptions,
+	fileIndex *camodels.FileIndex,
+	taskList *[]AnalysisTask,
+	diag *WalkDiagnostics,
+) error {
+	fileCount := 0
+
+	return filepath.WalkDir(absPath, func(path string, dirEntry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return nil // skip inaccessible entries
 		}
+
+		// Periodic context check.
+		if fileCount%contextCheckInterval == 0 {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+		}
+
+		// Skip symlinks unless explicitly allowed.
+		if dirEntry.Type()&os.ModeSymlink != 0 {
+			if !opts.FollowSymlinks {
+				diag.SkippedSymlinks++
+				if dirEntry.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+		}
+
 		if dirEntry.IsDir() {
-			// 跳过隐藏目录，如 .git
+			// Skip hidden directories.
 			if strings.HasPrefix(dirEntry.Name(), ".") && dirEntry.Name() != "." {
+				return filepath.SkipDir
+			}
+			// Enforce depth limit.
+			depth := pathDepth(absPath, path)
+			if depth >= opts.MaxDepth {
+				diag.MaxDepthReached = true
 				return filepath.SkipDir
 			}
 			return nil
 		}
 
-		// 计算相对路径并添加到索引 (保持在主协程，无需锁)
+		// Enforce file count limit.
+		if fileCount >= opts.MaxFiles {
+			diag.Truncated = true
+			return filepath.SkipAll
+		}
+
+		// Check file size via DirEntry info.
+		if info, infoErr := dirEntry.Info(); infoErr == nil {
+			if info.Size() > opts.MaxFileSize {
+				diag.SkippedLarge++
+				return nil
+			}
+		}
+
+		fileCount++
+
+		// Compute relative path and add to index.
 		relPath, _ := filepath.Rel(absPath, path)
-		// 统一使用 "/" 作为路径分隔符
 		relPath = filepath.ToSlash(relPath)
 		fileIndex.AddFile(relPath, dirEntry.Name(), filepath.Ext(dirEntry.Name()))
 
-		// 识别语言
+		// Identify language.
 		langDef := extToLanguage[strings.ToLower(filepath.Ext(path))]
 		if langDef == nil {
 			langDef = fileToLanguage[dirEntry.Name()]
 		}
-
 		if langDef != nil {
-			// 收集任务
-			taskList = append(taskList, AnalysisTask{
-				Path:    path,
-				LangDef: langDef,
-			})
+			*taskList = append(*taskList, AnalysisTask{Path: path, LangDef: langDef})
 		}
 		return nil
 	})
+}
 
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// 2. 初始化进度条
+// processTasks runs concurrent file stats collection.
+func (a *CodeAnalyzer) processTasks(taskList []AnalysisTask) (map[string]*camodels.LangSummary, int) {
 	bar := progress.NewProcessBar(int64(len(taskList)), "Analyzing Code")
-
-	// 准备并发处理
 	workers := autoWorkers()
 
 	tasks := make(chan AnalysisTask, len(taskList))
 	results := make(chan AnalysisResult, len(taskList))
 	var wg sync.WaitGroup
 
-	// 启动 Worker Pool
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
@@ -135,7 +206,6 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 		}()
 	}
 
-	// 启动结果收集协程
 	stats := make(map[string]*camodels.LangSummary)
 	var errorFiles int
 	done := make(chan struct{})
@@ -158,18 +228,23 @@ func (a *CodeAnalyzer) AnalyzeCodeProfile(projectPath string) (*camodels.CodePro
 		close(done)
 	}()
 
-	// 发送任务
 	for _, task := range taskList {
 		tasks <- task
 	}
+	close(tasks)
+	wg.Wait()
+	close(results)
+	<-done
+	return stats, errorFiles
+}
 
-	close(tasks)   // 停止发送任务
-	wg.Wait()      // 等待所有 Worker 完成
-	close(results) // 停止发送结果
-	<-done         // 等待结果收集完成
-
-	codeProfile := convertToCodeProfile(absPath, stats, errorFiles)
-	return codeProfile, fileIndex, nil
+// pathDepth computes the relative depth of path from root (root itself = 0).
+func pathDepth(root, path string) int {
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == "." {
+		return 0
+	}
+	return strings.Count(filepath.ToSlash(rel), "/") + 1
 }
 
 func autoWorkers() int {

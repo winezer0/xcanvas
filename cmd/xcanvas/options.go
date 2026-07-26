@@ -14,8 +14,8 @@ const (
 	AppName      = "xcanvas"
 	AppShortDesc = "Code fingerprint analysis"
 	AppLongDesc  = "Code fingerprint analysis"
-	AppVersion   = "0.2.1"
-	BuildDate    = "2026-03-11"
+	AppVersion   = "0.2.2"
+	BuildDate    = "2026-07-26"
 )
 
 // Options defines the command-line parameters for CodeCanvas.
