@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/winezer0/xutils/logging"
+	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/analyzer"
@@ -67,7 +67,7 @@ func AnalyzeWithContext(ctx context.Context, path string, rulesDir string, opts 
 		return nil, fmt.Errorf("error analyzing code profile: %w", analyzerErr)
 	}
 	if diag != nil && diag.Truncated {
-		logging.Warnf("xcanvas: file traversal truncated at %d files", opts.toWalkOptions().Normalize().MaxFiles)
+		slogs.Warnf("xcanvas: file traversal truncated at %d files", opts.toWalkOptions().Normalize().MaxFiles)
 	}
 
 	if err := ctx.Err(); err != nil {
@@ -95,7 +95,7 @@ func AnalyzeProjectInfoWithCanvas(projectName, projectPath, canvasRulesDir strin
 	// 获取 xcanvas 代码画像 使用 Analyze 获取语言、框架和组件信息
 	canvasReport, err := Analyze(projectPath, canvasRulesDir)
 	if err != nil {
-		logging.Errorf("detection canvas info error: %v", err)
+		slogs.Errorf("detection canvas info error: %v", err)
 		return projectInfo
 	}
 

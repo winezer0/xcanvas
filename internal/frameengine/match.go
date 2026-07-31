@@ -1,14 +1,14 @@
 package frameengine
 
 import (
+	"encoding/json"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/winezer0/xcanvas/camodels"
-	"github.com/winezer0/xutils/utils"
+	"github.com/winezer0/slogs"
 
-	"github.com/winezer0/xutils/logging"
+	"github.com/winezer0/xcanvas/camodels"
 )
 
 // containsAllKeywords 检查文件内容是否包含所有必需的关键字。
@@ -56,7 +56,8 @@ func extractVersion(content []byte, patterns []string) string {
 func matchFrame(matcher *IndexMatcher, rules []camodels.FrameRule, fileContentCache map[string][]byte) bool {
 	for _, rule := range rules {
 		if len(rule.Paths) == 0 && len(rule.FileContents) == 0 {
-			logging.Errorf("match rules not has any match content: %s", utils.ToJSON(rule))
+			ruleJSON, _ := json.Marshal(rule)
+			slogs.Errorf("match rules not has any match content: %s", string(ruleJSON))
 			continue
 		}
 

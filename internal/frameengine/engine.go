@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/winezer0/slogs"
+
 	"github.com/winezer0/xcanvas/camodels"
-	"github.com/winezer0/xutils/logging"
 )
 
 // formatVersion 格式化版本号，去除常见前缀和多余字符
@@ -53,7 +54,7 @@ func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	if rulesDir != "" {
 		err := engine.loadRulesFromDirectory(rulesDir)
 		if err != nil {
-			logging.Errorf("load rules from rule dir (%s) occur error: %v", rulesDir, err)
+			slogs.Errorf("load rules from rule dir (%s) occur error: %v", rulesDir, err)
 			return engine, err
 		}
 	}

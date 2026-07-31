@@ -3,9 +3,10 @@ package langengine
 import (
 	"strings"
 
+	"github.com/winezer0/slogs"
+
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/embeds"
-	"github.com/winezer0/xutils/logging"
 )
 
 // LangClassify 语言分类器的主结构体
@@ -51,7 +52,7 @@ func (c *LangClassify) DetectCategories(root string, langs []camodels.LangInfo) 
 		// 检查是否有统一语言模型
 		if langRule, ok := c.langMap[name]; !ok {
 			// 没有规则，分类为other
-			logging.Errorf("lang model not found for %s", name)
+			slogs.Errorf("lang model not found for %s", name)
 			otherSet[langInfo.Name] = true
 			continue
 		} else {

@@ -3,18 +3,18 @@ package analyzer
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 
-	"github.com/winezer0/xutils/progress"
-	"github.com/winezer0/xutils/utils"
+	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/langengine"
-	"github.com/winezer0/xutils/logging"
+	"github.com/winezer0/xcanvas/internal/progress"
 )
 
 // contextCheckInterval controls how often ctx.Err() is polled during walk.
@@ -292,7 +292,8 @@ func convertToCodeProfile(absPath string, stats map[string]*camodels.LangSummary
 		profile.TotalLines += langInfo.CodeLines + langInfo.CommentLines + langInfo.BlankLines
 	}
 
-	logging.Infof("profile ToJson: %s", utils.ToJSON(profile))
+	profileJSON, _ := json.Marshal(profile)
+	slogs.Infof("profile ToJson: %s", string(profileJSON))
 
 	// 进行语言信息分析
 	frontend, backend, desktop, other, allLang, expand := langengine.NewLangClassifier().DetectCategories(absPath, profile.LanguageInfos)

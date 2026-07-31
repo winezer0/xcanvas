@@ -6,15 +6,14 @@ import (
 	"os"
 
 	"github.com/jessevdk/go-flags"
-	"github.com/winezer0/xutils/logging"
-	"github.com/winezer0/xutils/utils"
+	"github.com/winezer0/slogs"
 )
 
 const (
 	AppName      = "xcanvas"
 	AppShortDesc = "Code fingerprint analysis"
 	AppLongDesc  = "Code fingerprint analysis"
-	AppVersion   = "0.2.2"
+	AppVersion   = "0.2.3"
 	BuildDate    = "2026-07-26"
 )
 
@@ -65,22 +64,24 @@ func InitOptionsArgs(minimumParams int) (*Options, *flags.Parser) {
 	}
 
 	// 初始化日志器
-	logCfg := logging.NewLogConfig(opts.LogLevel, opts.LogFile, opts.LogConsole)
-	if err := logging.InitLogger(logCfg); err != nil {
+	logCfg := slogs.NewConfig(opts.LogLevel, opts.LogFile, opts.LogConsole)
+	if err := slogs.Init(logCfg); err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
 		os.Exit(1)
 	}
-	defer logging.Sync()
+	defer slogs.CloseAll()
 
 	// 处理项目路径
 	if opts.ProjectPath == "" {
-		logging.Fatalf("must input project path !!!")
+		slogs.Errorf("must input project path !!!")
+		os.Exit(1)
 	}
 
-	if exists, _, _ := utils.PathExists(opts.ProjectPath); !exists {
-		logging.Fatalf("project path not exists: %s !!!", opts.ProjectPath)
+	if _, err := os.Stat(opts.ProjectPath); os.IsNotExist(err) {
+		slogs.Errorf("project path not exists: %s !!!", opts.ProjectPath)
+		os.Exit(1)
 	}
 
-	logging.Infof("ProjectPath: %s", opts.ProjectPath)
+	slogs.Infof("ProjectPath: %s", opts.ProjectPath)
 	return opts, parser
 }
