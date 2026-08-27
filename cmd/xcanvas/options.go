@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/jessevdk/go-flags"
@@ -29,6 +30,8 @@ type Options struct {
 	LogLevel   string `long:"ll" description:"log level (debug/info/warn/error)" default:"info"`
 	LogConsole string `long:"lc" description:"log format for console(TLCM OR off|null）" default:"LM"`
 	Version    bool   `short:"v" long:"version" description:"show version"`
+	logger     *slog.Logger
+	managedLog *slogs.Logger
 }
 
 // InitOptionsArgs 常用的工具函数，解析parser和logging配置
@@ -65,23 +68,25 @@ func InitOptionsArgs(minimumParams int) (*Options, *flags.Parser) {
 
 	// 初始化日志器
 	logCfg := slogs.NewConfig(opts.LogLevel, opts.LogFile, opts.LogConsole)
-	if err := slogs.Init(logCfg); err != nil {
+	managedLog, err := slogs.NewLogger(logCfg)
+	if err != nil {
 		fmt.Printf("Failed to initialize logger: %v\n", err)
 		os.Exit(1)
 	}
-	defer slogs.CloseAll()
+	opts.managedLog = managedLog
+	opts.logger = managedLog.Slog()
 
 	// 处理项目路径
 	if opts.ProjectPath == "" {
-		slogs.Errorf("must input project path !!!")
+		opts.logger.Error("project path is required")
 		os.Exit(1)
 	}
 
 	if _, err := os.Stat(opts.ProjectPath); os.IsNotExist(err) {
-		slogs.Errorf("project path not exists: %s !!!", opts.ProjectPath)
+		opts.logger.Error("project path does not exist", slog.String("path", opts.ProjectPath))
 		os.Exit(1)
 	}
 
-	slogs.Infof("ProjectPath: %s", opts.ProjectPath)
+	opts.logger.Info("project selected", slog.String("path", opts.ProjectPath))
 	return opts, parser
 }

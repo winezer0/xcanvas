@@ -3,9 +3,8 @@ package main
 
 import (
 	"encoding/json"
+	"log/slog"
 	"os"
-
-	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/canvas"
 )
@@ -15,29 +14,34 @@ func main() {
 	opts, _ := InitOptionsArgs(1)
 
 	// Analyze operation
-	report, err := canvas.Analyze(opts.ProjectPath, opts.RulesDir)
+	defer opts.managedLog.Close()
+	report, err := canvas.Analyze(opts.ProjectPath, opts.RulesDir, opts.logger)
 	if err != nil {
-		slogs.Errorf("Error analyzing code profile: %v\n", err)
+		opts.logger.Error("code profile analysis failed", slog.Any("error", err))
 		os.Exit(1)
 	}
 
 	// 输出命令行报告
 	PrintCanvasReport(report)
 	// 输出Json结果
-	saveJSON(opts.Output, report)
+	saveJSON(opts.Output, report, opts.logger)
 }
 
 // saveJSON 将结果序列化为JSON并写入文件
-func saveJSON(path string, v any) {
+func saveJSON(path string, v any, loggers ...*slog.Logger) {
 	if path == "" {
 		return
 	}
 	data, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		slogs.Errorf("marshal json error: %v", err)
+		if len(loggers) > 0 && loggers[0] != nil {
+			loggers[0].Error("marshal JSON failed", slog.Any("error", err))
+		}
 		return
 	}
 	if err := os.WriteFile(path, data, 0644); err != nil {
-		slogs.Errorf("write json file error: %v", err)
+		if len(loggers) > 0 && loggers[0] != nil {
+			loggers[0].Error("write JSON failed", slog.Any("error", err))
+		}
 	}
 }

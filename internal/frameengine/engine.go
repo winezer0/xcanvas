@@ -3,11 +3,11 @@ package frameengine
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
-	"github.com/winezer0/slogs"
-
 	"github.com/winezer0/xcanvas/camodels"
+	"github.com/winezer0/xcanvas/internal/logging"
 )
 
 // formatVersion 格式化版本号，去除常见前缀和多余字符
@@ -35,16 +35,22 @@ type CanvasEngine struct {
 	rules          []*camodels.Framework
 	frameworkRules map[string]*camodels.Framework
 	componentRules map[string]*camodels.Framework
+	logger         *slog.Logger
 }
 
 // NewCanvasEngine 创建一个新的规则引擎实例，默认加载嵌入式规则。
 // 如果提供了规则目录（rulesDir），则会从该目录加载规则，并将其与嵌入式规则合并，
 // 其中用户定义的规则将覆盖具有相同名称的嵌入式规则。
-func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
+func NewCanvasEngine(rulesDir string, loggers ...*slog.Logger) (*CanvasEngine, error) {
+	var logger *slog.Logger
+	if len(loggers) > 0 {
+		logger = loggers[0]
+	}
 	engine := &CanvasEngine{
 		rules:          []*camodels.Framework{},
 		frameworkRules: make(map[string]*camodels.Framework),
 		componentRules: make(map[string]*camodels.Framework),
+		logger:         logging.Normalize(logger),
 	}
 
 	// 首先加载嵌入式规则
@@ -54,7 +60,7 @@ func NewCanvasEngine(rulesDir string) (*CanvasEngine, error) {
 	if rulesDir != "" {
 		err := engine.loadRulesFromDirectory(rulesDir)
 		if err != nil {
-			slogs.Errorf("load rules from rule dir (%s) occur error: %v", rulesDir, err)
+			engine.logger.Error("load rules from directory failed", slog.String("rules_dir", rulesDir), slog.Any("error", err))
 			return engine, err
 		}
 	}
@@ -82,7 +88,7 @@ func (e *CanvasEngine) DetectFrameworks(index *camodels.FileIndex, languages []s
 	// 遍历所有规则，对每个框架进行检测
 	for _, framework := range filteredRules {
 		// 遍历框架的所有规则（OR关系）
-		if matchFrame(matcher, framework.Rules, fileContentCache) {
+		if matchFrame(matcher, framework.Rules, fileContentCache, e.logger) {
 			// 提取版本信息
 			version := extractorVersion(matcher, framework.Versions, fileContentCache)
 			// 规则匹配成功，创建检测结果

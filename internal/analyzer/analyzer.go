@@ -4,16 +4,16 @@ package analyzer
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 
-	"github.com/winezer0/slogs"
-
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/langengine"
+	"github.com/winezer0/xcanvas/internal/logging"
 	"github.com/winezer0/xcanvas/internal/progress"
 )
 
@@ -21,11 +21,15 @@ import (
 const contextCheckInterval = 100
 
 // CodeAnalyzer 实现代码画像分析功能。
-type CodeAnalyzer struct{}
+type CodeAnalyzer struct{ logger *slog.Logger }
 
 // NewCodeAnalyzer 创建一个新的代码分析器实例。
-func NewCodeAnalyzer() *CodeAnalyzer {
-	return &CodeAnalyzer{}
+func NewCodeAnalyzer(loggers ...*slog.Logger) *CodeAnalyzer {
+	var logger *slog.Logger
+	if len(loggers) > 0 {
+		logger = loggers[0]
+	}
+	return &CodeAnalyzer{logger: logging.Normalize(logger)}
 }
 
 // AnalysisTask 定义一个分析任务
@@ -96,7 +100,7 @@ func (a *CodeAnalyzer) AnalyzeCodeProfileWithContext(
 	// Process collected tasks concurrently.
 	stats, errorFiles := a.processTasks(taskList)
 
-	codeProfile := convertToCodeProfile(absPath, stats, errorFiles)
+	codeProfile := convertToCodeProfile(absPath, stats, errorFiles, a.logger)
 	return codeProfile, fileIndex, &diag, nil
 }
 
@@ -259,7 +263,7 @@ func autoWorkers() int {
 }
 
 // convertToCodeProfile converts statistics to CodeCanvas CodeProfile.
-func convertToCodeProfile(absPath string, stats map[string]*camodels.LangSummary, errorFiles int) *camodels.CodeProfile {
+func convertToCodeProfile(absPath string, stats map[string]*camodels.LangSummary, errorFiles int, logger *slog.Logger) *camodels.CodeProfile {
 
 	profile := &camodels.CodeProfile{
 		Path:              absPath,
@@ -293,10 +297,10 @@ func convertToCodeProfile(absPath string, stats map[string]*camodels.LangSummary
 	}
 
 	profileJSON, _ := json.Marshal(profile)
-	slogs.Infof("profile ToJson: %s", string(profileJSON))
+	logger.Info("profile serialized", slog.String("profile", string(profileJSON)))
 
 	// 进行语言信息分析
-	frontend, backend, desktop, other, allLang, expand := langengine.NewLangClassifier().DetectCategories(absPath, profile.LanguageInfos)
+	frontend, backend, desktop, other, allLang, expand := langengine.NewLangClassifier(logger).DetectCategories(absPath, profile.LanguageInfos)
 	profile.FrontendLanguages = frontend
 	profile.BackendLanguages = backend
 	profile.DesktopLanguages = desktop

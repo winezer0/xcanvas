@@ -3,19 +3,19 @@ package canvas
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
-
-	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/analyzer"
 	"github.com/winezer0/xcanvas/internal/frameengine"
+	"github.com/winezer0/xcanvas/internal/logging"
 )
 
 // Analyze performs a full analysis and returns a CanvasReport.
 // This is the backward-compatible entry point without cancellation support.
-func Analyze(path string, rulesDir string) (*camodels.CanvasReport, error) {
-	return AnalyzeWithContext(context.Background(), path, rulesDir, DefaultOptions())
+func Analyze(path string, rulesDir string, loggers ...*slog.Logger) (*camodels.CanvasReport, error) {
+	return AnalyzeWithContext(context.Background(), path, rulesDir, DefaultOptions(), loggers...)
 }
 
 // Options configures resource limits for xcanvas analysis.
@@ -49,25 +49,26 @@ func (o Options) toWalkOptions() analyzer.WalkOptions {
 }
 
 // AnalyzeWithContext performs a full analysis with context cancellation and resource limits.
-func AnalyzeWithContext(ctx context.Context, path string, rulesDir string, opts Options) (*camodels.CanvasReport, error) {
+func AnalyzeWithContext(ctx context.Context, path string, rulesDir string, opts Options, loggers ...*slog.Logger) (*camodels.CanvasReport, error) {
+	logger := logging.Normalize(firstLogger(loggers))
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("xcanvas: canceled before analysis: %w", err)
 	}
 
 	// Initialize framework detection rule engine.
-	canvasEngine, initErr := frameengine.NewCanvasEngine(rulesDir)
+	canvasEngine, initErr := frameengine.NewCanvasEngine(rulesDir, logger)
 	if initErr != nil {
 		return nil, fmt.Errorf("init canvas engine rules error: %v", initErr)
 	}
 
 	// Analyze code structure with context and resource limits.
-	codeAnalyzer := analyzer.NewCodeAnalyzer()
+	codeAnalyzer := analyzer.NewCodeAnalyzer(logger)
 	codeProfile, fileIndex, diag, analyzerErr := codeAnalyzer.AnalyzeCodeProfileWithContext(ctx, path, opts.toWalkOptions())
 	if analyzerErr != nil {
 		return nil, fmt.Errorf("error analyzing code profile: %w", analyzerErr)
 	}
 	if diag != nil && diag.Truncated {
-		slogs.Warnf("xcanvas: file traversal truncated at %d files", opts.toWalkOptions().Normalize().MaxFiles)
+		logger.Warn("xcanvas: file traversal truncated", slog.Int("max_files", opts.toWalkOptions().Normalize().MaxFiles))
 	}
 
 	if err := ctx.Err(); err != nil {
@@ -89,13 +90,14 @@ func AnalyzeWithContext(ctx context.Context, path string, rulesDir string, opts 
 }
 
 // AnalyzeProjectInfoWithCanvas 初始化項目信息 并分析canvasReport
-func AnalyzeProjectInfoWithCanvas(projectName, projectPath, canvasRulesDir string) *camodels.ProjectInfo {
+func AnalyzeProjectInfoWithCanvas(projectName, projectPath, canvasRulesDir string, loggers ...*slog.Logger) *camodels.ProjectInfo {
 	// 初始化项目画像信息
 	projectInfo := camodels.NewEmptyProjectInfo(projectName, projectPath)
 	// 获取 xcanvas 代码画像 使用 Analyze 获取语言、框架和组件信息
-	canvasReport, err := Analyze(projectPath, canvasRulesDir)
+	logger := logging.Normalize(firstLogger(loggers))
+	canvasReport, err := Analyze(projectPath, canvasRulesDir, logger)
 	if err != nil {
-		slogs.Errorf("detection canvas info error: %v", err)
+		logger.Error("detection canvas info failed", slog.Any("error", err))
 		return projectInfo
 	}
 
@@ -108,4 +110,11 @@ func AnalyzeProjectInfoWithCanvas(projectName, projectPath, canvasRulesDir strin
 	projectInfo.BackendLanguages = simpleCanvas.BackendLanguages
 	projectInfo.FrontendLanguages = simpleCanvas.FrontendLanguages
 	return projectInfo
+}
+
+func firstLogger(loggers []*slog.Logger) *slog.Logger {
+	if len(loggers) == 0 {
+		return nil
+	}
+	return loggers[0]
 }

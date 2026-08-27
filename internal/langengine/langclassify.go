@@ -1,12 +1,12 @@
 package langengine
 
 import (
+	"log/slog"
 	"strings"
-
-	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/camodels"
 	"github.com/winezer0/xcanvas/internal/embeds"
+	"github.com/winezer0/xcanvas/internal/logging"
 )
 
 // LangClassify 语言分类器的主结构体
@@ -14,6 +14,7 @@ import (
 
 type LangClassify struct {
 	langMap map[string]camodels.Language
+	logger  *slog.Logger
 }
 
 // LanguageRules 加载embeds的默认规则
@@ -21,9 +22,14 @@ var LanguageRules = embeds.EmbeddedLangRules()
 
 // NewLangClassifier 创建一个新的语言分类器实例
 // 初始化分类器并加载所有语言规则
-func NewLangClassifier() *LangClassify {
+func NewLangClassifier(loggers ...*slog.Logger) *LangClassify {
+	var logger *slog.Logger
+	if len(loggers) > 0 {
+		logger = loggers[0]
+	}
 	c := &LangClassify{
 		langMap: LanguageRules,
+		logger:  logging.Normalize(logger),
 	}
 	return c
 }
@@ -52,7 +58,7 @@ func (c *LangClassify) DetectCategories(root string, langs []camodels.LangInfo) 
 		// 检查是否有统一语言模型
 		if langRule, ok := c.langMap[name]; !ok {
 			// 没有规则，分类为other
-			slogs.Errorf("lang model not found for %s", name)
+			c.logger.Error("language model not found", slog.String("language", name))
 			otherSet[langInfo.Name] = true
 			continue
 		} else {

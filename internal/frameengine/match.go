@@ -2,11 +2,10 @@ package frameengine
 
 import (
 	"encoding/json"
+	"log/slog"
 	"path/filepath"
 	"regexp"
 	"strings"
-
-	"github.com/winezer0/slogs"
 
 	"github.com/winezer0/xcanvas/camodels"
 )
@@ -53,11 +52,11 @@ func extractVersion(content []byte, patterns []string) string {
 // matchFrame 检查 rules 中是否有任意一条规则被满足。
 // 规则满足条件 = 所有 Paths 存在 AND 所有 FileContents 条件满足。
 // 返回 true 表示至少有一条规则匹配成功。
-func matchFrame(matcher *IndexMatcher, rules []camodels.FrameRule, fileContentCache map[string][]byte) bool {
+func matchFrame(matcher *IndexMatcher, rules []camodels.FrameRule, fileContentCache map[string][]byte, logger *slog.Logger) bool {
 	for _, rule := range rules {
 		if len(rule.Paths) == 0 && len(rule.FileContents) == 0 {
 			ruleJSON, _ := json.Marshal(rule)
-			slogs.Errorf("match rules not has any match content: %s", string(ruleJSON))
+			logger.Error("frame rule has no match content", slog.String("rule", string(ruleJSON)))
 			continue
 		}
 
