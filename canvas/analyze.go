@@ -68,7 +68,7 @@ func AnalyzeWithContext(ctx context.Context, path string, rulesDir string, opts 
 		return nil, fmt.Errorf("error analyzing code profile: %w", analyzerErr)
 	}
 	if diag != nil && diag.Truncated {
-		logger.Warn("xcanvas: file traversal truncated", slog.Int("max_files", opts.toWalkOptions().Normalize().MaxFiles))
+		logger.WarnContext(ctx, "xcanvas: file traversal truncated", slog.Int("max_files", opts.toWalkOptions().Normalize().MaxFiles))
 	}
 
 	if err := ctx.Err(); err != nil {

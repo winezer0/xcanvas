@@ -3,6 +3,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -14,10 +15,12 @@ func main() {
 	opts, _ := InitOptionsArgs(1)
 
 	// Analyze operation
-	defer opts.managedLog.Close()
 	report, err := canvas.Analyze(opts.ProjectPath, opts.RulesDir, opts.logger)
 	if err != nil {
 		opts.logger.Error("code profile analysis failed", slog.Any("error", err))
+		if closeErr := opts.managedLog.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "error: close logger: %v\n", closeErr)
+		}
 		os.Exit(1)
 	}
 
@@ -25,6 +28,10 @@ func main() {
 	PrintCanvasReport(report)
 	// 输出Json结果
 	saveJSON(opts.Output, report, opts.logger)
+	if err := opts.managedLog.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: close logger: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // saveJSON 将结果序列化为JSON并写入文件
