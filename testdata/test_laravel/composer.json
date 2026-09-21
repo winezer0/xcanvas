@@ -1,6 +1,0 @@
-{
-    "name": "test/laravel",
-    "require": {
-        "laravel/framework": "^10.0"
-    }
-}
